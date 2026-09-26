@@ -48,6 +48,7 @@ const MOVE_SMOOTHING := 16.0
 const JAB_CHAIN_LIMIT := 2
 const ATTACK_CHAIN_WINDOW := 0.6
 const ATTACK_BUFFER_WINDOW := 0.3
+const ATTACK_REPRIME := 0.07
 const JAB_CHAIN_COOLDOWN := 0.9
 const JAB_TIME := 0.2
 const PUNCH_TIME := 0.55
@@ -66,6 +67,8 @@ var _chain_timer := 0.0
 var _jab_count := 0
 var _buffered := ""
 var _buffer_timer := 0.0
+var _pending_kind := ""
+var _reprime_timer := 0.0
 var _poses := {}
 var _idle_frame := 0
 var _idle_timer := 0.0
@@ -83,6 +86,12 @@ func _process(delta: float) -> void:
 		_buffer_timer = maxf(_buffer_timer - delta, 0.0)
 		if _buffer_timer == 0.0:
 			_buffered = ""
+	if _reprime_timer > 0.0:
+		_reprime_timer = maxf(_reprime_timer - delta, 0.0)
+		if _reprime_timer == 0.0 and not _pending_kind.is_empty():
+			var pending := _pending_kind
+			_pending_kind = ""
+			_start_attack(_action_for(pending), pending)
 	if state == Action.JAB or state == Action.PUNCH or state == Action.HURT:
 		_state_timer = maxf(_state_timer - delta, 0.0)
 		if _state_timer == 0.0:
@@ -114,6 +123,8 @@ func setup(color: Color, is_local: bool) -> void:
 	_jab_count = 0
 	_buffered = ""
 	_buffer_timer = 0.0
+	_pending_kind = ""
+	_reprime_timer = 0.0
 	_state_timer = 0.0
 	_idle_frame = 0
 	_idle_timer = 0.0
@@ -210,7 +221,9 @@ func _finish_action() -> void:
 		var kind := _buffered
 		_clear_buffer()
 		if _cooldown <= 0.0:
-			_start_attack(_action_for(kind), kind)
+			_set_state(Action.IDLE)
+			_pending_kind = kind
+			_reprime_timer = ATTACK_REPRIME
 			return
 	_set_state(Action.BLOCK if _block_held else Action.IDLE)
 
@@ -218,6 +231,8 @@ func _finish_action() -> void:
 func _clear_buffer() -> void:
 	_buffered = ""
 	_buffer_timer = 0.0
+	_pending_kind = ""
+	_reprime_timer = 0.0
 
 
 func _action_for(kind: String) -> Action:
