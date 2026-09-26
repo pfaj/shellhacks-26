@@ -11,25 +11,89 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_6qhff")
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=1493713574]
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=21326897]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -20.0
-offset_top = -20.0
-offset_right = 20.0
-offset_bottom = 20.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_left = 50
+theme_override_constants/margin_top = 50
+theme_override_constants/margin_right = 50
+theme_override_constants/margin_bottom = 50
 
-[node name="Button" type="Button" parent="." unique_id=1950649653]
+[node name="UserSelect" type="ColorRect" parent="MarginContainer" unique_id=1493713574]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/UserSelect" unique_id=500954518]
 layout_mode = 1
-offset_right = 8.0
-offset_bottom = 8.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 50
+
+[node name="BackButton" type="Button" parent="MarginContainer/UserSelect/VBoxContainer" unique_id=1950649653]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+offset_transform_enabled = true
+offset_transform_position = Vector2(20, 20)
+offset_transform_visual_only = false
 text = "BACK
 "
 
-[connection signal="pressed" from="Button" to="." method="_on_button_pressed"]
+[node name="UserList" type="HBoxContainer" parent="MarginContainer/UserSelect/VBoxContainer" unique_id=964828881]
+layout_mode = 2
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="MarginContainer/UserSelect/VBoxContainer/UserList" unique_id=488280866]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="Label" type="Label" parent="MarginContainer/UserSelect/VBoxContainer/UserList/VBoxContainer2" unique_id=1008925088]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 1
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Online Players"
+
+[node name="Button" type="Button" parent="MarginContainer/UserSelect/VBoxContainer/UserList/VBoxContainer2" unique_id=89288942]
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 6
+text = "USER 01"
+
+[node name="Button2" type="Button" parent="MarginContainer/UserSelect/VBoxContainer/UserList/VBoxContainer2" unique_id=1999975889]
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 6
+text = "USER 01"
+
+[node name="Button3" type="Button" parent="MarginContainer/UserSelect/VBoxContainer/UserList/VBoxContainer2" unique_id=216105232]
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 6
+text = "USER 01"
+
+[node name="Button4" type="Button" parent="MarginContainer/UserSelect/VBoxContainer/UserList/VBoxContainer2" unique_id=1961412086]
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 6
+text = "USER 01"
+
+[node name="Button5" type="Button" parent="MarginContainer/UserSelect/VBoxContainer/UserList/VBoxContainer2" unique_id=2079573341]
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 6
+text = "USER 01"
+
+[node name="Button6" type="Button" parent="MarginContainer/UserSelect/VBoxContainer/UserList/VBoxContainer2" unique_id=1785675380]
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 6
+text = "USER 01"
+
+[connection signal="pressed" from="MarginContainer/UserSelect/VBoxContainer/BackButton" to="." method="_on_button_pressed"]
