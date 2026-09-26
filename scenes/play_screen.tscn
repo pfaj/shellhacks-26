@@ -52,11 +52,11 @@ color = Color(1, 1, 1, 0.18)
 
 [node name="Fighters" type="Node2D" parent="."]
 
-[node name="LocalFighter" parent="Fighters" instance=ExtResource("2_fighter")]
-position = Vector2(360, 1560)
-
 [node name="RemoteFighter" parent="Fighters" instance=ExtResource("2_fighter")]
 position = Vector2(730, 1470)
+
+[node name="LocalFighter" parent="Fighters" instance=ExtResource("2_fighter")]
+position = Vector2(360, 1560)
 
 [node name="UI" type="Control" parent="."]
 layout_mode = 1

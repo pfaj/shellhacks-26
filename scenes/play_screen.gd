@@ -59,9 +59,9 @@ func _process(delta: float) -> void:
 	_update_tilt(delta)
 	_controls.update(delta)
 	_local.set_move(_move, delta)
-	_remote.set_move(_remote_move, delta)
+	_remote.set_move(-_remote_move, delta)
 	_local_fill.size.x = maxf((_move * 0.5 + 0.5) * TILT_BAR_WIDTH, 0.0)
-	_remote_fill.size.x = maxf((_remote_move * 0.5 + 0.5) * TILT_BAR_WIDTH, 0.0)
+	_remote_fill.size.x = maxf((-_remote_move * 0.5 + 0.5) * TILT_BAR_WIDTH, 0.0)
 	_net_accumulator += delta
 	if _net_accumulator >= NET_INTERVAL:
 		_net_accumulator = 0.0

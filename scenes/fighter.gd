@@ -2,7 +2,6 @@ class_name Fighter
 extends Node2D
 
 const MOVE_RANGE := 130.0
-const ATTACK_COOLDOWN := 0.3
 const SKIN_ROOT := "res://assets/fighters/"
 const EXTENSIONS: Array[String] = [".png", ".svg", ".webp"]
 const LAYERS := {
@@ -21,15 +20,10 @@ var state := Action.IDLE
 var _base_x := 0.0
 var _move := 0.0
 var _block_held := false
-var _cooldown := 0.0
 
 
 func _ready() -> void:
 	_anim.animation_finished.connect(_on_animation_finished)
-
-
-func _process(delta: float) -> void:
-	_cooldown = maxf(_cooldown - delta, 0.0)
 
 
 func setup(color: Color, base_x: float, scale_factor: float, facing_left: bool, skin := "default") -> void:
@@ -40,7 +34,6 @@ func setup(color: Color, base_x: float, scale_factor: float, facing_left: bool, 
 	_apply_color(color)
 	_apply_skin(skin)
 	state = Action.IDLE
-	_cooldown = 0.0
 	_anim.play(_animation_name(Action.IDLE), 0.0)
 
 
@@ -88,17 +81,14 @@ func _request(action: Action) -> bool:
 			_set_state(Action.KO)
 			return true
 		Action.JAB, Action.PUNCH:
-			if _cooldown > 0.0:
-				return false
-			if state == Action.IDLE or state == Action.JAB or state == Action.PUNCH:
-				_cooldown = ATTACK_COOLDOWN
-				_set_state(action, true)
+			if state == Action.IDLE:
+				_set_state(action)
 				return true
 	return false
 
 
-func _set_state(next: Action, force := false) -> void:
-	if next == state and not force:
+func _set_state(next: Action) -> void:
+	if next == state:
 		return
 	state = next
 	_anim.play(_animation_name(next), _blend_time(next))
@@ -151,6 +141,7 @@ func _play_sound(action: Action) -> void:
 func _apply_color(color: Color) -> void:
 	$Lean/Rig/TorsoSlot/TorsoPlaceholder.color = color
 	$Lean/Rig/HeadSlot/HeadPlaceholder.color = color.darkened(0.2)
+	$Lean/Rig/HeadSlot/HeadPlaceholder/Visor.color = color.darkened(0.5)
 	$Lean/Rig/ArmLeftSlot/ArmLeftPlaceholder.color = color.lightened(0.2)
 	$Lean/Rig/ArmRightSlot/ArmRightPlaceholder.color = color.lightened(0.2)
 	$Lean/Rig/ArmLeftSlot/ArmLeftPlaceholder/Glove.color = color.darkened(0.35)
