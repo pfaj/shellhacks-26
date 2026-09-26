@@ -165,6 +165,8 @@ func _on_peer_message(message: Dictionary) -> void:
 		Protocol.REMATCH:
 			_remote_rematch = true
 			_result_status.text = "Opponent wants a rematch"
+			if not _local_rematch:
+				_rematch_button.text = "ACCEPT"
 			_check_rematch()
 
 
@@ -219,7 +221,7 @@ func _finish_match(won: bool) -> void:
 
 
 func _on_rematch_pressed() -> void:
-	if _local_rematch or _remote_rematch:
+	if _local_rematch:
 		return
 	_local_rematch = true
 	Net.send({"t": Protocol.REMATCH})

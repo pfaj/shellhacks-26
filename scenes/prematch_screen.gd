@@ -45,13 +45,16 @@ func _on_peer_left() -> void:
 func _on_countdown_timeout() -> void:
 	if _step >= STEPS.size():
 		_timer.stop()
+		if _running:
+			get_tree().change_scene_to_file("res://scenes/play_screen.tscn")
 		return
 	_countdown.text = STEPS[_step]
 	if _step == STEPS.size() - 1:
 		Sfx.play("bell")
 	_step += 1
 	if _step >= STEPS.size():
-		get_tree().change_scene_to_file("res://scenes/play_screen.tscn")
+		_timer.wait_time = 0.9
+		_timer.start()
 
 
 func _on_leave_pressed() -> void:
