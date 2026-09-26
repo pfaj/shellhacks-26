@@ -12,3 +12,5 @@ backstitch.cfg
 
 # Wrangler local state
 .wrangler/
+.vercel
+.env*
