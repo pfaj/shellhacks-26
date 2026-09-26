@@ -3,10 +3,10 @@ extends Control
 const NET_INTERVAL := 1.0 / 20.0
 const TILT_STEP_DEGREES := 8.0
 const TILT_SMOOTHING := 22.0
-const LOCAL_X := 0.82
-const LOCAL_Y := 0.82
-const REMOTE_X := 0.30
-const REMOTE_Y := 0.67
+const LOCAL_X := 0.76
+const LOCAL_Y := 0.88
+const REMOTE_X := 0.36
+const REMOTE_Y := 0.75
 const MAX_HP := 100
 const JAB_DAMAGE := 5
 const PUNCH_DAMAGE := 12
