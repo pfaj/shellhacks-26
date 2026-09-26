@@ -38,7 +38,12 @@ text = "PLAY
 layout_mode = 2
 text = "SETTINGS"
 
+[node name="TiltTestButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=1863322071]
+layout_mode = 2
+text = "TILT TEST"
+
 [node name="Websocket" parent="." unique_id=596286745 instance=ExtResource("2_ekxnf")]
 
 [connection signal="pressed" from="MarginContainer/VBoxContainer/PlayButton" to="." method="_on_button_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/SettingButton" to="." method="_on_setting_button_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/TiltTestButton" to="." method="_on_tilt_test_button_pressed"]

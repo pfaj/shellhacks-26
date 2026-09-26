@@ -1,0 +1,129 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/lobby_screen.gd" id="1_lobby"]
+
+[node name="LobbyScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_lobby")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 60
+theme_override_constants/margin_top = 80
+theme_override_constants/margin_right = 60
+theme_override_constants/margin_bottom = 80
+
+[node name="Column" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="RoomLabel" type="Label" parent="Margin/Column"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+horizontal_alignment = 1
+
+[node name="Status" type="Label" parent="Margin/Column"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+autowrap_mode = 2
+horizontal_alignment = 1
+
+[node name="QrTexture" type="TextureRect" parent="Margin/Column"]
+custom_minimum_size = Vector2(0, 420)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="QrHint" type="Label" parent="Margin/Column"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Scan to join this room"
+horizontal_alignment = 1
+
+[node name="Fighters" type="HBoxContainer" parent="Margin/Column"]
+custom_minimum_size = Vector2(0, 500)
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="LeftPanel" type="VBoxContainer" parent="Margin/Column/Fighters"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 16
+
+[node name="LeftTag" type="Label" parent="Margin/Column/Fighters/LeftPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "YOU"
+horizontal_alignment = 1
+
+[node name="NameInput" type="LineEdit" parent="Margin/Column/Fighters/LeftPanel"]
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 2
+theme_override_font_sizes/font_size = 50
+max_length = 12
+alignment = 1
+
+[node name="ColorRow" type="HBoxContainer" parent="Margin/Column/Fighters/LeftPanel"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 12
+
+[node name="ReadyButton" type="Button" parent="Margin/Column/Fighters/LeftPanel"]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "READY"
+
+[node name="Versus" type="VBoxContainer" parent="Margin/Column/Fighters"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="VersusLabel" type="Label" parent="Margin/Column/Fighters/Versus"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 96
+text = "VS"
+
+[node name="RightPanel" type="VBoxContainer" parent="Margin/Column/Fighters"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 16
+
+[node name="RightTag" type="Label" parent="Margin/Column/Fighters/RightPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "OPPONENT"
+horizontal_alignment = 1
+
+[node name="RightColor" type="ColorRect" parent="Margin/Column/Fighters/RightPanel"]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="RightName" type="Label" parent="Margin/Column/Fighters/RightPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 50
+horizontal_alignment = 1
+
+[node name="RightReady" type="Label" parent="Margin/Column/Fighters/RightPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "NOT READY"
+horizontal_alignment = 1
+
+[node name="BackButton" type="Button" parent="Margin/Column"]
+custom_minimum_size = Vector2(0, 110)
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "LEAVE ROOM"

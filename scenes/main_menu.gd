@@ -1,22 +1,24 @@
 extends Control
 
 
-# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	pass # Replace with function body.
+	pass
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	pass
 
 
 func _on_button_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/player_select.tscn")
-	print("Loading player select...")
+	get_tree().change_scene_to_file("res://scenes/connect_screen.tscn")
+	print("Loading online match...")
 
 
 func _on_setting_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/settings.tscn")
 	print("Loading settings...")
-	pass # Replace with function body.
+
+
+func _on_tilt_test_button_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/tilt_test.tscn")
+	print("Loading tilt test...")

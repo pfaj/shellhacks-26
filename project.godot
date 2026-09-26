@@ -14,6 +14,13 @@ config/name="Shellhacks 2026"
 run/main_scene="uid://dvvu06i3v6irh"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
+boot_splash/bg_color=Color(0, 0, 0, 1)
+boot_splash/show_image=false
+
+[autoload]
+
+Net="*res://scenes/net.gd"
+Tilt="*res://scenes/tilt.gd"
 
 [display]
 
@@ -26,6 +33,10 @@ window/handheld/orientation=1
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/backstitch/plugin.cfg")
+
+[gui]
+
+theme/default_theme_scale=2.0
 
 [physics]
 
