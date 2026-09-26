@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://k5up3l2oql7j"
-path="res://.godot/imported/RussoOne-Regular.ttf-d9cddf99c80fb5c18da26bea177c473d.fontdata"
+uid="uid://bt3w23ovl4ehb"
+path="res://.godot/imported/RussoOne-Regular.ttf-6dfa1e4f3354d5ba40d0775191309a1f.fontdata"
 
 [deps]
 
-source_file="res://font/RussoOne-Regular.ttf"
-dest_files=["res://.godot/imported/RussoOne-Regular.ttf-d9cddf99c80fb5c18da26bea177c473d.fontdata"]
+source_file="res://assets/fonts/RussoOne-Regular.ttf"
+dest_files=["res://.godot/imported/RussoOne-Regular.ttf-6dfa1e4f3354d5ba40d0775191309a1f.fontdata"]
 
 [params]
 

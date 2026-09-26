@@ -65,6 +65,10 @@ func set_block(value: bool) -> void:
 		_set_state(Action.IDLE)
 
 
+func block_hit() -> void:
+	Sfx.play(Protocol.BLOCK, 0.05)
+
+
 func _request(action: Action) -> void:
 	match action:
 		Action.HURT:
@@ -122,8 +126,6 @@ func _play_sound(action: Action) -> void:
 			Sfx.play(Protocol.JAB, 0.05)
 		Action.PUNCH:
 			Sfx.play(Protocol.PUNCH, 0.05)
-		Action.BLOCK:
-			Sfx.play(Protocol.BLOCK, 0.05)
 		Action.HURT:
 			Sfx.play(Protocol.HURT, 0.05)
 		Action.KO:
@@ -135,6 +137,8 @@ func _apply_color(color: Color) -> void:
 	$Lean/Rig/HeadSlot/HeadPlaceholder.color = color.darkened(0.2)
 	$Lean/Rig/ArmLeftSlot/ArmLeftPlaceholder.color = color.lightened(0.2)
 	$Lean/Rig/ArmRightSlot/ArmRightPlaceholder.color = color.lightened(0.2)
+	$Lean/Rig/ArmLeftSlot/ArmLeftPlaceholder/Glove.color = color.darkened(0.35)
+	$Lean/Rig/ArmRightSlot/ArmRightPlaceholder/Glove.color = color.darkened(0.35)
 
 
 func _apply_skin(skin: String) -> void:
