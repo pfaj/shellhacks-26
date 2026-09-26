@@ -13,7 +13,8 @@ const LOCAL_POSES := {
 	"jab": "Right Jab",
 	"punch": "Left Hook",
 	"block": "Block",
-	"hurt": "Hit Right",
+	"hurt_l": "Hit Left",
+	"hurt_r": "Hit Right",
 	"dodge_l": "Dodge L",
 	"dodge_r": "Dodge R",
 	"ko": "Knockout",
@@ -24,7 +25,8 @@ const PEER_POSES := {
 	"jab": "L Hook",
 	"punch": "R Jab",
 	"block": "Block",
-	"hurt": "Hit L",
+	"hurt_l": "Hit L",
+	"hurt_r": "Hit R",
 	"dodge_l": "Dodge L",
 	"dodge_r": "Dodge R",
 	"ko": "Knockout",
@@ -68,6 +70,7 @@ var _poses := {}
 var _idle_frame := 0
 var _idle_timer := 0.0
 var _state_timer := 0.0
+var _hurt_key := "hurt_r"
 
 
 func _process(delta: float) -> void:
@@ -114,6 +117,7 @@ func setup(color: Color, is_local: bool) -> void:
 	_state_timer = 0.0
 	_idle_frame = 0
 	_idle_timer = 0.0
+	_hurt_key = "hurt_r"
 	_refresh_pose()
 
 
@@ -132,10 +136,15 @@ func play_action(kind: String) -> bool:
 		Protocol.PUNCH:
 			return _request_attack(Action.PUNCH, Protocol.PUNCH)
 		Protocol.HURT:
-			return _request(Action.HURT)
+			return play_hurt(Protocol.JAB)
 		Protocol.KO:
 			return _request(Action.KO)
 	return false
+
+
+func play_hurt(kind: String) -> bool:
+	_hurt_key = "hurt_l" if kind == Protocol.JAB else "hurt_r"
+	return _request(Action.HURT)
 
 
 func set_block(value: bool) -> void:
@@ -263,7 +272,7 @@ func _pose_key() -> String:
 		Action.BLOCK:
 			return "block"
 		Action.HURT:
-			return "hurt"
+			return _hurt_key
 		Action.KO:
 			return "ko"
 	if _move < -DODGE_THRESHOLD:

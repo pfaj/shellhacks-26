@@ -3,9 +3,8 @@ extends Control
 const NET_INTERVAL := 1.0 / 20.0
 const TILT_STEP_DEGREES := 8.0
 const TILT_SMOOTHING := 22.0
-const LOCAL_X := 0.76
+const BOT_SEPARATION := 0.23
 const LOCAL_Y := 0.88
-const REMOTE_X := 0.36
 const REMOTE_Y := 0.75
 const MAX_HP := 100
 const JAB_DAMAGE := 5
@@ -97,8 +96,10 @@ func _input(event: InputEvent) -> void:
 
 
 func _layout_fighters() -> void:
-	_local.place(Vector2(size.x * LOCAL_X, size.y * LOCAL_Y))
-	_remote.place(Vector2(size.x * REMOTE_X, size.y * REMOTE_Y))
+	var separation := size.y * BOT_SEPARATION
+	var center := size.x * 0.5
+	_local.place(Vector2(center + separation * 0.5, size.y * LOCAL_Y))
+	_remote.place(Vector2(center - separation * 0.5, size.y * REMOTE_Y))
 
 
 func _update_tilt(delta: float) -> void:
@@ -212,19 +213,35 @@ func _resolve_incoming_hit(kind: String) -> void:
 		return
 	if _controls.blocking:
 		var chip := _chip_damage(kind)
-		Net.send({"t": Protocol.HIT_RESULT, "blocked": true, "damage": chip, "hp": maxi(_local_hp - chip, 0)})
-		_apply_local_damage(chip, true)
+		Net.send({
+			"t": Protocol.HIT_RESULT,
+			"blocked": true,
+			"damage": chip,
+			"hp": maxi(_local_hp - chip, 0),
+			"kind": kind,
+		})
+		_apply_local_damage(chip, true, kind)
 		return
 	var damage := _base_damage(kind)
-	Net.send({"t": Protocol.HIT_RESULT, "blocked": false, "damage": damage, "hp": maxi(_local_hp - damage, 0)})
-	_apply_local_damage(damage, false)
+	Net.send({
+		"t": Protocol.HIT_RESULT,
+		"blocked": false,
+		"damage": damage,
+		"hp": maxi(_local_hp - damage, 0),
+		"kind": kind,
+	})
+	_apply_local_damage(damage, false, kind)
 
 
 func _apply_hit_result(message: Dictionary) -> void:
-	_apply_remote_damage(int(message.get("damage", 0)), bool(message.get("blocked", false)))
+	_apply_remote_damage(
+		int(message.get("damage", 0)),
+		bool(message.get("blocked", false)),
+		str(message.get("kind", Protocol.JAB))
+	)
 
 
-func _apply_local_damage(damage: int, blocked: bool) -> void:
+func _apply_local_damage(damage: int, blocked: bool, kind: String) -> void:
 	if damage <= 0:
 		return
 	_local_hp = maxi(_local_hp - damage, 0)
@@ -238,14 +255,14 @@ func _apply_local_damage(damage: int, blocked: bool) -> void:
 		_local_combo = 0
 		_combo_timer = 0.0
 		_hud.hide_combo()
-		_local.play_action(Protocol.HURT)
+		_local.play_hurt(kind)
 		_hud.set_local_action("HURT")
 	if _local_hp <= 0:
 		_local.play_action(Protocol.KO)
 		_finish_match(Result.LOSE)
 
 
-func _apply_remote_damage(damage: int, blocked: bool) -> void:
+func _apply_remote_damage(damage: int, blocked: bool, kind: String) -> void:
 	if damage <= 0:
 		return
 	_remote_hp = maxi(_remote_hp - damage, 0)
@@ -257,7 +274,7 @@ func _apply_remote_damage(damage: int, blocked: bool) -> void:
 		_hit_stop()
 		_shake()
 		_register_combo()
-		_remote.play_action(Protocol.HURT)
+		_remote.play_hurt(kind)
 		_hud.set_remote_action("HURT")
 	if _remote_hp <= 0:
 		_remote.play_action(Protocol.KO)
