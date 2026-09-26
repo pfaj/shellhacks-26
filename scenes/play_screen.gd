@@ -1,7 +1,8 @@
 extends Control
 
 const NET_INTERVAL := 1.0 / 20.0
-const TILT_STEP_DEGREES := 8.0
+const TILT_ENTER_DEGREES := 18.0
+const TILT_EXIT_DEGREES := 10.0
 const TILT_SMOOTHING := 22.0
 const BOT_SEPARATION := 0.23
 const LOCAL_Y := 0.88
@@ -105,11 +106,11 @@ func _layout_fighters() -> void:
 func _update_tilt(delta: float) -> void:
 	_smoothed_gamma = lerpf(_smoothed_gamma, _raw_gamma(), clampf(delta * TILT_SMOOTHING, 0.0, 1.0))
 	var value := _smoothed_gamma - _neutral
-	if value > TILT_STEP_DEGREES:
+	if value > TILT_ENTER_DEGREES:
 		_move = 1.0
-	elif value < -TILT_STEP_DEGREES:
+	elif value < -TILT_ENTER_DEGREES:
 		_move = -1.0
-	else:
+	elif absf(value) < TILT_EXIT_DEGREES:
 		_move = 0.0
 
 
