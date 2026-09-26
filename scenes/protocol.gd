@@ -13,6 +13,7 @@ const INPUT := "input"
 const ACT := "act"
 const HIT := "hit"
 const HIT_RESULT := "hit_result"
+const MISS := "miss"
 const REMATCH := "rematch"
 
 const JAB := "jab"

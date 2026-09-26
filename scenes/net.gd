@@ -20,6 +20,8 @@ var peer_ready := false
 var peer_connected := false
 var room_code := ""
 var my_slot := -1
+var local_rounds := 0
+var remote_rounds := 0
 
 var _socket := WebSocketPeer.new()
 var _active := false
@@ -47,6 +49,8 @@ func leave() -> void:
 	my_slot = -1
 	reset_ready()
 	peer_connected = false
+	local_rounds = 0
+	remote_rounds = 0
 
 
 func send(message: Dictionary) -> void:
@@ -90,6 +94,8 @@ func _start(code: String) -> void:
 	room_code = code
 	peer_connected = false
 	reset_ready()
+	local_rounds = 0
+	remote_rounds = 0
 	_socket = WebSocketPeer.new()
 	var err := _socket.connect_to_url("%s?room=%s" % [RELAY_URL, code])
 	if err != OK:
