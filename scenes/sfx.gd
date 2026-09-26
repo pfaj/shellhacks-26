@@ -2,7 +2,7 @@ extends Node
 
 const SFX_DIR := "res://assets/audio/sfx/"
 const MUSIC_DIR := "res://assets/audio/music/"
-const SFX_NAMES: Array[String] = ["jab", "punch", "block", "hurt", "hit", "whoosh", "bell", "ko", "win", "lose"]
+const SFX_NAMES: Array[String] = ["hit", "whoosh", "block", "hurt", "bell", "ko", "win", "lose"]
 const VARIANT_SUFFIXES: Array[String] = ["", "2", "3", "4", "5"]
 const EXTENSIONS: Array[String] = [".ogg", ".wav", ".mp3"]
 const POOL_SIZE := 8
@@ -26,14 +26,14 @@ func _ready() -> void:
 	add_child(_music)
 
 
-func play(sound: String, pitch_variation := 0.0) -> void:
+func play(sound: String, pitch_variation := 0.0, pitch := 1.0) -> void:
 	if not _streams.has(sound):
 		return
 	var variants: Array = _streams[sound]
 	var player := _players[_next]
 	_next = (_next + 1) % _players.size()
 	player.stream = variants.pick_random()
-	player.pitch_scale = 1.0 + randf_range(-pitch_variation, pitch_variation)
+	player.pitch_scale = pitch + randf_range(-pitch_variation, pitch_variation)
 	player.play()
 
 

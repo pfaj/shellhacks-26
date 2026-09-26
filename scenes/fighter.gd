@@ -129,9 +129,9 @@ func _blend_time(action: Action) -> float:
 func _play_sound(action: Action) -> void:
 	match action:
 		Action.JAB:
-			Sfx.play(Protocol.JAB, 0.05)
+			Sfx.play("whoosh", 0.05, 1.1)
 		Action.PUNCH:
-			Sfx.play(Protocol.PUNCH, 0.05)
+			Sfx.play("whoosh", 0.05, 0.92)
 		Action.HURT:
 			Sfx.play(Protocol.HURT, 0.05)
 			Sfx.play(Protocol.HIT, 0.08)

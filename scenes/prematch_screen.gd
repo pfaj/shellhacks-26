@@ -47,6 +47,8 @@ func _on_countdown_timeout() -> void:
 		_timer.stop()
 		return
 	_countdown.text = STEPS[_step]
+	if _step == STEPS.size() - 1:
+		Sfx.play("bell")
 	_step += 1
 	if _step >= STEPS.size():
 		get_tree().change_scene_to_file("res://scenes/play_screen.tscn")
