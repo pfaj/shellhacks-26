@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://x8it631sce0o"]
+
+[ext_resource type="Script" uid="uid://dr71gnpwjl11j" path="res://scenes/player.gd" id="1_3vyb7"]
+
+[sub_resource type="Gradient" id="Gradient_u8vuu"]
+offsets = PackedFloat32Array(0)
+colors = PackedColorArray(0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_xoah6"]
+gradient = SubResource("Gradient_u8vuu")
+width = 48
+height = 48
+
+[node name="Player" type="Node2D" unique_id=1522907323]
+script = ExtResource("1_3vyb7")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1412255895]
+texture = SubResource("GradientTexture2D_xoah6")
+
+[node name="Label" type="Label" parent="." unique_id=362584085]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -40.0
+offset_top = 24.0
+offset_right = 40.0
+offset_bottom = 48.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset_ratio = Vector2(0.5, 0.5)
