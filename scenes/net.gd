@@ -56,7 +56,7 @@ func send(message: Dictionary) -> void:
 
 func send_ready(value: bool) -> void:
 	my_ready = value
-	send({"t": "set_ready", "value": value})
+	send({"t": Protocol.SET_READY, "value": value})
 
 
 func reset_ready() -> void:
@@ -76,7 +76,7 @@ func save_profile(new_name: String, new_color: Color) -> void:
 
 
 func broadcast_profile() -> void:
-	send({"t": "profile", "name": my_name, "color": my_color.to_html(false)})
+	send({"t": Protocol.PROFILE, "name": my_name, "color": my_color.to_html(false)})
 
 
 func _load_profile() -> void:
@@ -119,28 +119,28 @@ func _handle_packet(text: String) -> void:
 	if typeof(message) != TYPE_DICTIONARY:
 		return
 	match str(message.get("t", "")):
-		"joined":
+		Protocol.JOINED:
 			my_slot = int(message.get("slot", -1))
 			status_changed.emit("Waiting for opponent...")
 			broadcast_profile()
 			joined.emit()
-		"peer_joined":
+		Protocol.PEER_JOINED:
 			broadcast_profile()
-		"ready":
+		Protocol.READY:
 			peer_connected = true
 			broadcast_profile()
 			room_ready.emit()
-		"peer_left":
+		Protocol.PEER_LEFT:
 			peer_connected = false
 			reset_ready()
 			peer_left.emit()
-		"full":
+		Protocol.ROOM_FULL:
 			room_full.emit()
-		"profile":
+		Protocol.PROFILE:
 			peer_name = str(message.get("name", "Opponent"))
 			peer_color = Color.html(str(message.get("color", "ff4444")))
 			peer_profile.emit(peer_name, peer_color)
-		"set_ready":
+		Protocol.SET_READY:
 			peer_ready = bool(message.get("value", false))
 			peer_ready_changed.emit(peer_ready)
 		_:

@@ -1,3 +1,4 @@
+class_name Fighter
 extends Node2D
 
 const MOVE_RANGE := 130.0
@@ -10,12 +11,15 @@ const LAYERS := {
 	"arm_r": "ArmRight",
 }
 
+enum Action { IDLE, JAB, PUNCH, BLOCK, HURT, KO }
+
 @onready var _lean: Node2D = $Lean
 @onready var _anim: AnimationPlayer = $AnimationPlayer
 
+var state := Action.IDLE
 var _base_x := 0.0
 var _move := 0.0
-var _blocking := false
+var _block_held := false
 
 
 func _ready() -> void:
@@ -29,7 +33,8 @@ func setup(color: Color, base_x: float, scale_factor: float, facing_left: bool, 
 	_lean.scale.x = -1.0 if facing_left else 1.0
 	_apply_color(color)
 	_apply_skin(skin)
-	_anim.play("idle")
+	state = Action.IDLE
+	_anim.play(_animation_name(Action.IDLE), 0.0)
 
 
 func set_move(value: float, delta: float) -> void:
@@ -39,41 +44,90 @@ func set_move(value: float, delta: float) -> void:
 
 
 func play_action(kind: String) -> void:
-	if _blocking and kind != "hurt":
-		return
 	match kind:
-		"jab":
-			_anim.play("jab", 0.03)
-			Sfx.play("jab", 0.05)
-		"punch":
-			_anim.play("punch", 0.03)
-			Sfx.play("punch", 0.05)
-		"hurt":
-			_anim.play("hurt", 0.03)
-			Sfx.play("hurt", 0.05)
-		"ko":
-			_anim.play("ko", 0.1)
-			Sfx.play("ko")
+		Protocol.JAB:
+			_request(Action.JAB)
+		Protocol.PUNCH:
+			_request(Action.PUNCH)
+		Protocol.HURT:
+			_request(Action.HURT)
+		Protocol.KO:
+			_request(Action.KO)
 
 
 func set_block(value: bool) -> void:
-	if value == _blocking:
+	_block_held = value
+	if state == Action.KO or state == Action.HURT:
 		return
-	_blocking = value
 	if value:
-		_anim.play("block", 0.08)
-		Sfx.play("block", 0.05)
-	else:
-		_anim.play("idle", 0.08)
+		_set_state(Action.BLOCK)
+	elif state == Action.BLOCK:
+		_set_state(Action.IDLE)
 
 
-func _on_animation_finished(anim_name: StringName) -> void:
-	if str(anim_name) == "ko":
+func _request(action: Action) -> void:
+	match action:
+		Action.HURT:
+			if state != Action.KO:
+				_set_state(Action.HURT)
+		Action.KO:
+			_set_state(Action.KO)
+		Action.JAB, Action.PUNCH:
+			if state == Action.IDLE or state == Action.JAB or state == Action.PUNCH:
+				_set_state(action, true)
+
+
+func _set_state(next: Action, force := false) -> void:
+	if next == state and not force:
 		return
-	if _blocking:
-		_anim.play("block", 0.05)
-	else:
-		_anim.play("idle", 0.08)
+	state = next
+	_anim.play(_animation_name(next), _blend_time(next))
+	_play_sound(next)
+
+
+func _on_animation_finished(_anim_name: StringName) -> void:
+	if state == Action.KO:
+		return
+	if state == Action.JAB or state == Action.PUNCH or state == Action.HURT:
+		_set_state(Action.BLOCK if _block_held else Action.IDLE)
+
+
+func _animation_name(action: Action) -> String:
+	match action:
+		Action.JAB:
+			return "jab"
+		Action.PUNCH:
+			return "punch"
+		Action.BLOCK:
+			return "block"
+		Action.HURT:
+			return "hurt"
+		Action.KO:
+			return "ko"
+	return "idle"
+
+
+func _blend_time(action: Action) -> float:
+	match action:
+		Action.JAB, Action.PUNCH, Action.HURT:
+			return 0.03
+		Action.KO:
+			return 0.1
+	return 0.08
+
+
+func _play_sound(action: Action) -> void:
+	match action:
+		Action.JAB:
+			Sfx.play(Protocol.JAB, 0.05)
+		Action.PUNCH:
+			Sfx.play(Protocol.PUNCH, 0.05)
+		Action.BLOCK:
+			Sfx.play(Protocol.BLOCK, 0.05)
+		Action.HURT:
+			Sfx.play(Protocol.HURT, 0.05)
+		Action.KO:
+			Sfx.play(Protocol.KO)
 
 
 func _apply_color(color: Color) -> void:
