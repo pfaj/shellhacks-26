@@ -47,6 +47,9 @@ var _hit_stop_active := false
 @onready var _local: Node2D = $Fighters/LocalFighter
 @onready var _remote: Node2D = $Fighters/RemoteFighter
 @onready var _hud: Control = $Hud
+@onready var _floor: ColorRect = $Floor
+@onready var _rope_top: ColorRect = $RopeTop
+@onready var _rope_mid: ColorRect = $RopeMid
 
 
 func _ready() -> void:
@@ -54,8 +57,8 @@ func _ready() -> void:
 		_tilt = JavaScriptBridge.get_interface("sockemTilt")
 	_local.setup(Net.my_color, true)
 	_remote.setup(Net.peer_color, false)
-	_layout_fighters()
-	resized.connect(_layout_fighters)
+	_layout_stage()
+	resized.connect(_layout_stage)
 	_local.attack_started.connect(_on_attack_started)
 	_hud.setup(Net.my_name, Net.my_color, Net.peer_name, Net.peer_color, $Fighters)
 	_hud.set_timer(ROUND_TIME)
@@ -96,11 +99,22 @@ func _input(event: InputEvent) -> void:
 	_controls.handle_event(event, size.x * 0.5)
 
 
-func _layout_fighters() -> void:
-	var separation := size.y * BOT_SEPARATION
+func _layout_stage() -> void:
+	var design_height := size.x * (1920.0 / 1080.0)
+	var stage_height := minf(size.y, design_height)
+	var floor_y := stage_height * 0.62 / size.y
+	_floor.anchor_top = floor_y
+	_floor.anchor_bottom = 1.0
+	var rope_top_y := stage_height * 0.06 / size.y
+	_rope_top.anchor_top = rope_top_y
+	_rope_top.anchor_bottom = rope_top_y
+	var rope_mid_y := stage_height * 0.14 / size.y
+	_rope_mid.anchor_top = rope_mid_y
+	_rope_mid.anchor_bottom = rope_mid_y
+	var separation := stage_height * BOT_SEPARATION
 	var center := size.x * 0.5
-	_local.place(Vector2(center + separation * 0.5, size.y * LOCAL_Y))
-	_remote.place(Vector2(center - separation * 0.5, size.y * REMOTE_Y))
+	_local.place(Vector2(center + separation * 0.5, stage_height * LOCAL_Y))
+	_remote.place(Vector2(center - separation * 0.5, stage_height * REMOTE_Y))
 
 
 func _update_tilt(delta: float) -> void:
@@ -173,7 +187,7 @@ func _impact_delay(kind: String) -> float:
 func _resolve_hit(kind: String) -> void:
 	if _match_over:
 		return
-	if _move != -_remote_move:
+	if _move > 0.0 and _remote_move > 0.0:
 		Net.send({"t": Protocol.MISS})
 		_hud.show_floating_text(_remote.position + Vector2(0, -700), "MISS", Color(0.75, 0.75, 0.85), 52)
 		return
