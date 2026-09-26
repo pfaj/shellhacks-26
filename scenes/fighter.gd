@@ -7,6 +7,7 @@ const MOVE_RANGE := 60.0
 const LEAN_ANGLE := 0.22
 const JAB_CHAIN_LIMIT := 2
 const ATTACK_CHAIN_WINDOW := 0.6
+const ATTACK_BUFFER_WINDOW := 0.3
 const JAB_CHAIN_COOLDOWN := 0.9
 const SKIN_ROOT := "res://assets/fighters/"
 const EXTENSIONS: Array[String] = [".png", ".svg", ".webp"]
@@ -30,6 +31,7 @@ var _cooldown := 0.0
 var _chain_timer := 0.0
 var _jab_count := 0
 var _buffered := ""
+var _buffer_timer := 0.0
 
 
 func _ready() -> void:
@@ -42,6 +44,10 @@ func _process(delta: float) -> void:
 		_chain_timer = maxf(_chain_timer - delta, 0.0)
 		if _chain_timer == 0.0:
 			_jab_count = 0
+	if _buffer_timer > 0.0:
+		_buffer_timer = maxf(_buffer_timer - delta, 0.0)
+		if _buffer_timer == 0.0:
+			_buffered = ""
 
 
 func setup(color: Color, base_x: float, scale_factor: float, facing_left: bool, skin := "default") -> void:
@@ -56,6 +62,7 @@ func setup(color: Color, base_x: float, scale_factor: float, facing_left: bool, 
 	_chain_timer = 0.0
 	_jab_count = 0
 	_buffered = ""
+	_buffer_timer = 0.0
 	_anim.play(_animation_name(Action.IDLE), 0.0)
 
 
@@ -83,7 +90,7 @@ func set_block(value: bool) -> void:
 	if state == Action.KO or state == Action.HURT:
 		return
 	if value:
-		_buffered = ""
+		_clear_buffer()
 		_set_state(Action.BLOCK)
 	elif state == Action.BLOCK:
 		_set_state(Action.IDLE)
@@ -98,11 +105,11 @@ func _request(action: Action) -> bool:
 		Action.HURT:
 			if state == Action.KO:
 				return false
-			_buffered = ""
+			_clear_buffer()
 			_set_state(Action.HURT)
 			return true
 		Action.KO:
-			_buffered = ""
+			_clear_buffer()
 			_set_state(Action.KO)
 			return true
 	return false
@@ -112,8 +119,9 @@ func _request_attack(action: Action, kind: String) -> bool:
 	if _cooldown > 0.0:
 		return false
 	if state != Action.IDLE:
-		if _buffered.is_empty() and state != Action.HURT and state != Action.KO and state != Action.BLOCK:
+		if state != Action.HURT and state != Action.KO and state != Action.BLOCK:
 			_buffered = kind
+			_buffer_timer = ATTACK_BUFFER_WINDOW
 		return false
 	_start_attack(action, kind)
 	return true
@@ -138,14 +146,19 @@ func _start_attack(action: Action, kind: String) -> void:
 func _on_animation_finished(_anim_name: StringName) -> void:
 	if state == Action.KO:
 		return
-	if not _buffered.is_empty():
+	if not _buffered.is_empty() and _buffer_timer > 0.0:
 		var kind := _buffered
-		_buffered = ""
+		_clear_buffer()
 		if _cooldown <= 0.0:
 			_start_attack(_action_for(kind), kind)
 			return
 	if state == Action.JAB or state == Action.PUNCH or state == Action.HURT:
 		_set_state(Action.BLOCK if _block_held else Action.IDLE)
+
+
+func _clear_buffer() -> void:
+	_buffered = ""
+	_buffer_timer = 0.0
 
 
 func _action_for(kind: String) -> Action:

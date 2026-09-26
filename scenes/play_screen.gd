@@ -206,7 +206,7 @@ func _on_attack_started(kind: String) -> void:
 
 
 func _impact_delay(kind: String) -> float:
-	return 0.14 if kind == Protocol.PUNCH else 0.08
+	return 0.14 if kind == Protocol.PUNCH else 0.06
 
 
 func _resolve_hit(kind: String) -> void:
