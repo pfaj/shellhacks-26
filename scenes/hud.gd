@@ -89,7 +89,7 @@ func set_bars(local_hp: int, remote_hp: int, local_move: float, remote_move: flo
 	_local_tilt_fill.offset_left = 0.0
 	_local_tilt_fill.offset_right = (local_move * 0.5 + 0.5) * tilt_width
 	_remote_tilt_fill.offset_left = 0.0
-	_remote_tilt_fill.offset_right = (-remote_move * 0.5 + 0.5) * tilt_width
+	_remote_tilt_fill.offset_right = (remote_move * 0.5 + 0.5) * tilt_width
 	_update_hp(true, local_hp)
 	_update_hp(false, remote_hp)
 

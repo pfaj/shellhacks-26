@@ -4,8 +4,6 @@ const NET_INTERVAL := 1.0 / 20.0
 const MAX_TILT_DEGREES := 30.0
 const DEADZONE_DEGREES := 1.5
 const TILT_SMOOTHING := 22.0
-const JAB_REACH := 330.0
-const PUNCH_REACH := 380.0
 const MAX_HP := 100
 const JAB_DAMAGE := 5
 const PUNCH_DAMAGE := 12
@@ -51,8 +49,8 @@ var _hit_stop_active := false
 func _ready() -> void:
 	if OS.has_feature("web"):
 		_tilt = JavaScriptBridge.get_interface("sockemTilt")
-	_local.setup(Net.my_color, 360.0, 1.15, false)
-	_remote.setup(Net.peer_color, 730.0, 0.95, true)
+	_local.setup(Net.my_color, 360.0, true)
+	_remote.setup(Net.peer_color, 730.0, false)
 	_local.attack_started.connect(_on_attack_started)
 	_hud.setup(Net.my_name, Net.my_color, Net.peer_name, Net.peer_color, $Fighters)
 	_hud.set_timer(ROUND_TIME)
@@ -78,7 +76,7 @@ func _process(delta: float) -> void:
 	_update_tilt(delta)
 	_controls.update(delta)
 	_local.set_move(_move, delta)
-	_remote.set_move(-_remote_move, delta)
+	_remote.set_move(_remote_move, delta)
 	_update_round_timer(delta)
 	_update_combo(delta)
 	_net_accumulator += delta
@@ -149,7 +147,6 @@ func _land_action(kind: String) -> void:
 
 
 func _on_attack_started(kind: String) -> void:
-	_hud.set_local_action(kind.to_upper())
 	Net.send({"t": Protocol.ACT, "kind": kind})
 	get_tree().create_timer(_impact_delay(kind)).timeout.connect(_resolve_hit.bind(kind))
 
@@ -161,8 +158,7 @@ func _impact_delay(kind: String) -> float:
 func _resolve_hit(kind: String) -> void:
 	if _match_over:
 		return
-	var reach := PUNCH_REACH if kind == Protocol.PUNCH else JAB_REACH
-	if absf(_local.position.x - _remote.position.x) > reach:
+	if _remote_move < -DODGE_THRESHOLD:
 		Net.send({"t": Protocol.MISS})
 		_hud.show_floating_text(_remote.position + Vector2(0, -560), "MISS", Color(0.75, 0.75, 0.85), 52)
 		return

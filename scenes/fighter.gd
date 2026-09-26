@@ -3,25 +3,47 @@ extends Node2D
 
 signal attack_started(kind: String)
 
-const MOVE_RANGE := 60.0
-const LEAN_ANGLE := 0.22
+const POSE_DIR := "res://assets/fighters/Trial Run Bots/"
+const LOCAL_PREFIX := "Shellhacks_Bots_P1 "
+const PEER_PREFIX := "Shellhacks_Bots_Opponent "
+const LOCAL_POSES := {
+	"idle_a": "Idle 1",
+	"idle_b": "Idle 2",
+	"jab": "Left Hook",
+	"punch": "Right Jab",
+	"block": "Block",
+	"hurt": "Hit Right",
+	"dodge_l": "Dodge L",
+	"dodge_r": "Dodge R",
+	"ko": "Knockout",
+}
+const PEER_POSES := {
+	"idle_a": "Idle 1",
+	"idle_b": "Idle 2",
+	"jab": "L Hook",
+	"punch": "R Jab",
+	"block": "Block",
+	"hurt": "Hit L",
+	"dodge_l": "Dodge L",
+	"dodge_r": "Dodge R",
+	"ko": "Knockout",
+}
+const ARTBOARD_HEIGHT := 1929.94
+const LOCAL_DRAW_HEIGHT := 1050.0
+const PEER_DRAW_HEIGHT := 900.0
+const WAIST_RATIO := 0.57
+const WAIST_OFFSET := -60.0
+const IDLE_FRAME_TIME := 0.45
+const DODGE_THRESHOLD := 0.35
+const MOVE_SMOOTHING := 16.0
 const JAB_CHAIN_LIMIT := 2
 const ATTACK_CHAIN_WINDOW := 0.6
 const ATTACK_BUFFER_WINDOW := 0.3
 const JAB_CHAIN_COOLDOWN := 0.9
-const SKIN_ROOT := "res://assets/fighters/"
-const EXTENSIONS: Array[String] = [".png", ".svg", ".webp"]
-const LAYERS := {
-	"torso": "Torso",
-	"head": "Head",
-	"arm_l": "ArmLeft",
-	"arm_r": "ArmRight",
-}
 
 enum Action { IDLE, JAB, PUNCH, BLOCK, HURT, KO }
 
-@onready var _lean: Node2D = $Lean
-@onready var _anim: AnimationPlayer = $AnimationPlayer
+@onready var _sprite: Sprite2D = $Sprite
 
 var state := Action.IDLE
 var _base_x := 0.0
@@ -32,10 +54,9 @@ var _chain_timer := 0.0
 var _jab_count := 0
 var _buffered := ""
 var _buffer_timer := 0.0
-
-
-func _ready() -> void:
-	_anim.animation_finished.connect(_on_animation_finished)
+var _poses := {}
+var _idle_frame := 0
+var _idle_timer := 0.0
 
 
 func _process(delta: float) -> void:
@@ -48,28 +69,32 @@ func _process(delta: float) -> void:
 		_buffer_timer = maxf(_buffer_timer - delta, 0.0)
 		if _buffer_timer == 0.0:
 			_buffered = ""
+	_update_idle(delta)
+	_refresh_pose()
 
 
-func setup(color: Color, base_x: float, scale_factor: float, facing_left: bool, skin := "default") -> void:
+func setup(color: Color, base_x: float, is_local: bool) -> void:
 	_base_x = base_x
 	position.x = base_x
-	scale = Vector2(scale_factor, scale_factor)
-	_lean.scale.x = -1.0 if facing_left else 1.0
-	_apply_color(color)
-	_apply_skin(skin)
+	_load_poses(is_local)
+	_sprite.self_modulate = color
+	_sprite.centered = false
+	var draw_height := LOCAL_DRAW_HEIGHT if is_local else PEER_DRAW_HEIGHT
+	var factor := draw_height / ARTBOARD_HEIGHT
+	_sprite.scale = Vector2(factor, factor)
 	state = Action.IDLE
 	_cooldown = 0.0
 	_chain_timer = 0.0
 	_jab_count = 0
 	_buffered = ""
 	_buffer_timer = 0.0
-	_anim.play(_animation_name(Action.IDLE), 0.0)
+	_idle_frame = 0
+	_idle_timer = 0.0
+	_refresh_pose()
 
 
 func set_move(value: float, delta: float) -> void:
-	_move = lerpf(_move, value, clampf(delta * 16.0, 0.0, 1.0))
-	position.x = _base_x + _move * MOVE_RANGE
-	_lean.rotation = lerpf(_lean.rotation, _move * LEAN_ANGLE, clampf(delta * 16.0, 0.0, 1.0))
+	_move = lerpf(_move, value, clampf(delta * MOVE_SMOOTHING, 0.0, 1.0))
 
 
 func play_action(kind: String) -> bool:
@@ -139,21 +164,8 @@ func _start_attack(action: Action, kind: String) -> void:
 	else:
 		_jab_count = 0
 		_chain_timer = 0.0
-	_set_state(action, true)
+	_set_state(action)
 	attack_started.emit(kind)
-
-
-func _on_animation_finished(_anim_name: StringName) -> void:
-	if state == Action.KO:
-		return
-	if not _buffered.is_empty() and _buffer_timer > 0.0:
-		var kind := _buffered
-		_clear_buffer()
-		if _cooldown <= 0.0:
-			_start_attack(_action_for(kind), kind)
-			return
-	if state == Action.JAB or state == Action.PUNCH or state == Action.HURT:
-		_set_state(Action.BLOCK if _block_held else Action.IDLE)
 
 
 func _clear_buffer() -> void:
@@ -167,16 +179,33 @@ func _action_for(kind: String) -> Action:
 	return Action.JAB
 
 
-func _set_state(next: Action, force := false) -> void:
-	if next == state and not force:
+func _set_state(next: Action) -> void:
+	if next == state:
 		return
 	state = next
-	_anim.play(_animation_name(next), _blend_time(next))
 	_play_sound(next)
+	if next != Action.IDLE:
+		_idle_timer = 0.0
 
 
-func _animation_name(action: Action) -> String:
-	match action:
+func _update_idle(delta: float) -> void:
+	if state != Action.IDLE or absf(_move) > DODGE_THRESHOLD:
+		_idle_timer = 0.0
+		return
+	_idle_timer += delta
+	if _idle_timer >= IDLE_FRAME_TIME:
+		_idle_timer = 0.0
+		_idle_frame = 1 - _idle_frame
+
+
+func _refresh_pose() -> void:
+	var texture: Texture2D = _poses.get(_pose_key())
+	if texture != null and _sprite.texture != texture:
+		_sprite.texture = texture
+
+
+func _pose_key() -> String:
+	match state:
 		Action.JAB:
 			return "jab"
 		Action.PUNCH:
@@ -187,16 +216,21 @@ func _animation_name(action: Action) -> String:
 			return "hurt"
 		Action.KO:
 			return "ko"
-	return "idle"
+	if _move < -DODGE_THRESHOLD:
+		return "dodge_l"
+	if _move > DODGE_THRESHOLD:
+		return "dodge_r"
+	return "idle_a" if _idle_frame == 0 else "idle_b"
 
 
-func _blend_time(action: Action) -> float:
-	match action:
-		Action.JAB, Action.PUNCH, Action.HURT:
-			return 0.03
-		Action.KO:
-			return 0.1
-	return 0.08
+func _load_poses(is_local: bool) -> void:
+	_poses.clear()
+	var prefix := LOCAL_PREFIX if is_local else PEER_PREFIX
+	var names: Dictionary = LOCAL_POSES if is_local else PEER_POSES
+	for key in names.keys():
+		var path: String = "%s%s%s.svg" % [POSE_DIR, prefix, names[key]]
+		if ResourceLoader.exists(path):
+			_poses[key] = load(path)
 
 
 func _play_sound(action: Action) -> void:
@@ -210,32 +244,3 @@ func _play_sound(action: Action) -> void:
 			Sfx.play(Protocol.HIT, 0.08)
 		Action.KO:
 			Sfx.play(Protocol.KO)
-
-
-func _apply_color(color: Color) -> void:
-	$Lean/Rig/TorsoSlot/TorsoPlaceholder.color = color
-	$Lean/Rig/HeadSlot/HeadPlaceholder.color = color.darkened(0.2)
-	$Lean/Rig/HeadSlot/HeadPlaceholder/Visor.color = color.darkened(0.5)
-	$Lean/Rig/ArmLeftSlot/ArmLeftPlaceholder.color = color.lightened(0.2)
-	$Lean/Rig/ArmRightSlot/ArmRightPlaceholder.color = color.lightened(0.2)
-	$Lean/Rig/ArmLeftSlot/ArmLeftPlaceholder/Glove.color = color.darkened(0.35)
-	$Lean/Rig/ArmRightSlot/ArmRightPlaceholder/Glove.color = color.darkened(0.35)
-
-
-func _apply_skin(skin: String) -> void:
-	for layer in LAYERS.keys():
-		var slot_name: String = LAYERS[layer]
-		var sprite: Sprite2D = get_node("Lean/Rig/%sSlot/%sSprite" % [slot_name, slot_name])
-		var placeholder: ColorRect = get_node("Lean/Rig/%sSlot/%sPlaceholder" % [slot_name, slot_name])
-		var texture := _load_layer(skin, layer)
-		sprite.texture = texture
-		sprite.visible = texture != null
-		placeholder.visible = texture == null
-
-
-func _load_layer(skin: String, layer: String) -> Texture2D:
-	for extension in EXTENSIONS:
-		var path := "%s%s/%s%s" % [SKIN_ROOT, skin, layer, extension]
-		if ResourceLoader.exists(path):
-			return load(path)
-	return null
