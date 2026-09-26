@@ -11,6 +11,7 @@ const PUNCH_REACH := 380.0
 const MAX_HP := 100
 const JAB_DAMAGE := 7
 const PUNCH_DAMAGE := 12
+const CHIP_RATIO := 0.3
 const RESULT_DELAY := 1.1
 const DAMAGE_DRIFT := -100.0
 
@@ -176,35 +177,55 @@ func _resolve_incoming_hit(kind: String) -> void:
 		return
 	if _controls.blocking:
 		_local.block_hit()
-		Net.send({"t": Protocol.HIT_RESULT, "blocked": true, "damage": 0, "hp": _local_hp})
+		_apply_local_damage(_chip_damage(kind), true)
+		Net.send({"t": Protocol.HIT_RESULT, "blocked": true, "damage": _chip_damage(kind), "hp": _local_hp})
 		return
 	_local.play_action(Protocol.HURT)
 	_local_action.text = "HURT"
 	_local_action_time = ACTION_LABEL_TIME
-	var damage := PUNCH_DAMAGE if kind == Protocol.PUNCH else JAB_DAMAGE
-	_local_hp = maxi(_local_hp - damage, 0)
-	_animate_hp(true, damage)
-	_spawn_damage_number(_local, damage)
-	Net.send({"t": Protocol.HIT_RESULT, "blocked": false, "damage": damage, "hp": _local_hp})
-	if _local_hp <= 0:
-		_local.play_action(Protocol.KO)
-		_finish_match(false)
+	_apply_local_damage(_base_damage(kind), false)
+	Net.send({"t": Protocol.HIT_RESULT, "blocked": false, "damage": _base_damage(kind), "hp": _local_hp})
 
 
 func _apply_hit_result(message: Dictionary) -> void:
 	if bool(message.get("blocked", false)):
 		_remote.block_hit()
+		_apply_remote_damage(int(message.get("damage", 0)), true)
 		return
-	var damage := int(message.get("damage", 0))
-	_remote_hp = int(message.get("hp", _remote_hp))
-	_animate_hp(false, damage)
-	_spawn_damage_number(_remote, damage)
 	_remote.play_action(Protocol.HURT)
 	_remote_action.text = "HURT"
 	_remote_action_time = ACTION_LABEL_TIME
+	_apply_remote_damage(int(message.get("damage", 0)), false)
+
+
+func _apply_local_damage(damage: int, blocked: bool) -> void:
+	if damage <= 0:
+		return
+	_local_hp = maxi(_local_hp - damage, 0)
+	_animate_hp(true, damage)
+	_spawn_damage_number(_local, damage, blocked)
+	if _local_hp <= 0:
+		_local.play_action(Protocol.KO)
+		_finish_match(false)
+
+
+func _apply_remote_damage(damage: int, blocked: bool) -> void:
+	if damage <= 0:
+		return
+	_remote_hp = maxi(_remote_hp - damage, 0)
+	_animate_hp(false, damage)
+	_spawn_damage_number(_remote, damage, blocked)
 	if _remote_hp <= 0:
 		_remote.play_action(Protocol.KO)
 		_finish_match(true)
+
+
+func _base_damage(kind: String) -> int:
+	return PUNCH_DAMAGE if kind == Protocol.PUNCH else JAB_DAMAGE
+
+
+func _chip_damage(kind: String) -> int:
+	return ceili(_base_damage(kind) * CHIP_RATIO)
 
 
 func _finish_match(won: bool) -> void:
@@ -303,14 +324,16 @@ func _animate_hp(local: bool, damage: int) -> void:
 	tween.tween_property(bg, "scale", Vector2.ONE, 0.18)
 
 
-func _spawn_damage_number(victim: Node2D, damage: int) -> void:
+func _spawn_damage_number(victim: Node2D, damage: int, blocked := false) -> void:
 	if damage <= 0:
 		return
 	var heavy := damage >= PUNCH_DAMAGE
+	var font_size := 44 if blocked else (76 if heavy else 58)
+	var color := Color(0.85, 0.85, 0.9) if blocked else (Color(1.0, 0.45, 0.2) if heavy else Color(1.0, 0.9, 0.35))
 	var label := Label.new()
 	label.text = str(damage)
-	label.add_theme_font_size_override("font_size", 76 if heavy else 58)
-	label.add_theme_color_override("font_color", Color(1.0, 0.45, 0.2) if heavy else Color(1.0, 0.9, 0.35))
+	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_color_override("font_color", color)
 	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
 	label.add_theme_constant_override("outline_size", 12)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
