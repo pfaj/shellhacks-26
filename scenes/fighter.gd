@@ -28,11 +28,17 @@ const PEER_POSES := {
 	"dodge_r": "Dodge R",
 	"ko": "Knockout",
 }
-const ARTBOARD_HEIGHT := 1929.94
-const LOCAL_DRAW_HEIGHT := 1050.0
-const PEER_DRAW_HEIGHT := 900.0
-const WAIST_RATIO := 0.57
-const WAIST_OFFSET := -60.0
+const ARTBOARD_WIDTH := 1373.0
+const ARTBOARD_HEIGHT := 1930.0
+const ARTBOARD_RATIO := ARTBOARD_WIDTH / ARTBOARD_HEIGHT
+const LOCAL_BOT_HEIGHT := 560.0
+const PEER_BOT_HEIGHT := 480.0
+const LOCAL_CONTENT_HEIGHT := 0.880
+const PEER_CONTENT_HEIGHT := 0.871
+const LOCAL_CONTENT_BOTTOM := 0.948
+const PEER_CONTENT_BOTTOM := 0.935
+const LOCAL_CONTENT_CENTER := 0.518
+const PEER_CONTENT_CENTER := 0.500
 const IDLE_FRAME_TIME := 0.45
 const DODGE_THRESHOLD := 0.35
 const MOVE_SMOOTHING := 16.0
@@ -40,6 +46,9 @@ const JAB_CHAIN_LIMIT := 2
 const ATTACK_CHAIN_WINDOW := 0.6
 const ATTACK_BUFFER_WINDOW := 0.3
 const JAB_CHAIN_COOLDOWN := 0.9
+const JAB_TIME := 0.2
+const PUNCH_TIME := 0.55
+const HURT_TIME := 0.35
 
 enum Action { IDLE, JAB, PUNCH, BLOCK, HURT, KO }
 
@@ -57,6 +66,7 @@ var _buffer_timer := 0.0
 var _poses := {}
 var _idle_frame := 0
 var _idle_timer := 0.0
+var _state_timer := 0.0
 
 
 func _process(delta: float) -> void:
@@ -69,6 +79,10 @@ func _process(delta: float) -> void:
 		_buffer_timer = maxf(_buffer_timer - delta, 0.0)
 		if _buffer_timer == 0.0:
 			_buffered = ""
+	if state == Action.JAB or state == Action.PUNCH or state == Action.HURT:
+		_state_timer = maxf(_state_timer - delta, 0.0)
+		if _state_timer == 0.0:
+			_finish_action()
 	_update_idle(delta)
 	_refresh_pose()
 
@@ -79,15 +93,24 @@ func setup(color: Color, base_x: float, is_local: bool) -> void:
 	_load_poses(is_local)
 	_sprite.self_modulate = color
 	_sprite.centered = false
-	var draw_height := LOCAL_DRAW_HEIGHT if is_local else PEER_DRAW_HEIGHT
+	var bot_height := LOCAL_BOT_HEIGHT if is_local else PEER_BOT_HEIGHT
+	var content_height := LOCAL_CONTENT_HEIGHT if is_local else PEER_CONTENT_HEIGHT
+	var content_bottom := LOCAL_CONTENT_BOTTOM if is_local else PEER_CONTENT_BOTTOM
+	var content_center := LOCAL_CONTENT_CENTER if is_local else PEER_CONTENT_CENTER
+	var draw_height := bot_height / content_height
 	var factor := draw_height / ARTBOARD_HEIGHT
 	_sprite.scale = Vector2(factor, factor)
+	_sprite.position = Vector2(
+		-content_center * draw_height * ARTBOARD_RATIO,
+		-content_bottom * draw_height
+	)
 	state = Action.IDLE
 	_cooldown = 0.0
 	_chain_timer = 0.0
 	_jab_count = 0
 	_buffered = ""
 	_buffer_timer = 0.0
+	_state_timer = 0.0
 	_idle_frame = 0
 	_idle_timer = 0.0
 	_refresh_pose()
@@ -168,6 +191,16 @@ func _start_attack(action: Action, kind: String) -> void:
 	attack_started.emit(kind)
 
 
+func _finish_action() -> void:
+	if not _buffered.is_empty() and _buffer_timer > 0.0:
+		var kind := _buffered
+		_clear_buffer()
+		if _cooldown <= 0.0:
+			_start_attack(_action_for(kind), kind)
+			return
+	_set_state(Action.BLOCK if _block_held else Action.IDLE)
+
+
 func _clear_buffer() -> void:
 	_buffered = ""
 	_buffer_timer = 0.0
@@ -183,9 +216,21 @@ func _set_state(next: Action) -> void:
 	if next == state:
 		return
 	state = next
+	_state_timer = _state_time(next)
 	_play_sound(next)
 	if next != Action.IDLE:
 		_idle_timer = 0.0
+
+
+func _state_time(action: Action) -> float:
+	match action:
+		Action.JAB:
+			return JAB_TIME
+		Action.PUNCH:
+			return PUNCH_TIME
+		Action.HURT:
+			return HURT_TIME
+	return 0.0
 
 
 func _update_idle(delta: float) -> void:

@@ -283,6 +283,8 @@ func _finish_match(result: Result) -> void:
 	if won_match or lost_match:
 		if won_match:
 			Net.add_win()
+		else:
+			Net.add_loss()
 		_hud.show_result("YOU WIN" if won_match else "YOU LOSE", _match_status(), true)
 		Sfx.play("win" if won_match else "lose")
 		return
@@ -293,7 +295,7 @@ func _finish_match(result: Result) -> void:
 
 
 func _match_status() -> String:
-	return "%d - %d\nLIFETIME WINS  %d  vs  %d" % [Net.local_rounds, Net.remote_rounds, Net.my_wins, Net.peer_wins]
+	return "%d - %d\nYOU  %dW - %dL    THEM  %dW - %dL" % [Net.local_rounds, Net.remote_rounds, Net.my_wins, Net.my_losses, Net.peer_wins, Net.peer_losses]
 
 
 func _round_text(result: Result) -> String:

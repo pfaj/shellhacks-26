@@ -14,10 +14,12 @@ const RELAY_URL := "wss://sockem-relay.bdebiase2.workers.dev/ws"
 var my_name := "Player"
 var my_color := Color(0.9, 0.26, 0.29)
 var my_wins := 0
+var my_losses := 0
 var my_ready := false
 var peer_name := "Opponent"
 var peer_color := Color(0.25, 0.55, 0.95)
 var peer_wins := 0
+var peer_losses := 0
 var peer_ready := false
 var peer_connected := false
 var room_code := ""
@@ -54,6 +56,7 @@ func leave() -> void:
 	local_rounds = 0
 	remote_rounds = 0
 	peer_wins = 0
+	peer_losses = 0
 
 
 func send(message: Dictionary) -> void:
@@ -84,12 +87,18 @@ func add_win() -> void:
 	_save_profile()
 
 
+func add_loss() -> void:
+	my_losses += 1
+	_save_profile()
+
+
 func broadcast_profile() -> void:
 	send({
 		"t": Protocol.PROFILE,
 		"name": my_name,
 		"color": my_color.to_html(false),
 		"wins": my_wins,
+		"losses": my_losses,
 	})
 
 
@@ -98,6 +107,7 @@ func _save_profile() -> void:
 	config.set_value("profile", "name", my_name)
 	config.set_value("profile", "color", my_color)
 	config.set_value("profile", "wins", my_wins)
+	config.set_value("profile", "losses", my_losses)
 	config.save("user://profile.cfg")
 
 
@@ -108,12 +118,14 @@ func _load_profile() -> void:
 	my_name = str(config.get_value("profile", "name", my_name))
 	my_color = config.get_value("profile", "color", my_color)
 	my_wins = int(config.get_value("profile", "wins", 0))
+	my_losses = int(config.get_value("profile", "losses", 0))
 
 
 func _start(code: String) -> void:
 	room_code = code
 	peer_connected = false
 	peer_wins = 0
+	peer_losses = 0
 	reset_ready()
 	local_rounds = 0
 	remote_rounds = 0
@@ -167,6 +179,7 @@ func _handle_packet(text: String) -> void:
 			peer_name = str(message.get("name", "Opponent"))
 			peer_color = Color.html(str(message.get("color", "ff4444")))
 			peer_wins = int(message.get("wins", 0))
+			peer_losses = int(message.get("losses", 0))
 			peer_profile.emit(peer_name, peer_color)
 		Protocol.SET_READY:
 			peer_ready = bool(message.get("value", false))
