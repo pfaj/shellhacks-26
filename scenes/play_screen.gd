@@ -3,9 +3,9 @@ extends Control
 const NET_INTERVAL := 1.0 / 20.0
 const TILT_STEP_DEGREES := 8.0
 const TILT_SMOOTHING := 22.0
-const LOCAL_X := 0.18
+const LOCAL_X := 0.82
 const LOCAL_Y := 0.82
-const REMOTE_X := 0.70
+const REMOTE_X := 0.30
 const REMOTE_Y := 0.67
 const MAX_HP := 100
 const JAB_DAMAGE := 5
@@ -171,7 +171,7 @@ func _impact_delay(kind: String) -> float:
 func _resolve_hit(kind: String) -> void:
 	if _match_over:
 		return
-	if _remote_move < -DODGE_THRESHOLD:
+	if _move != _remote_move:
 		Net.send({"t": Protocol.MISS})
 		_hud.show_floating_text(_remote.position + Vector2(0, -700), "MISS", Color(0.75, 0.75, 0.85), 52)
 		return
@@ -197,7 +197,7 @@ func _on_peer_message(message: Dictionary) -> void:
 		Protocol.HIT_RESULT:
 			_apply_hit_result(message)
 		Protocol.MISS:
-			if _move < -DODGE_THRESHOLD:
+			if absf(_move) > DODGE_THRESHOLD:
 				_hud.show_floating_text(_local.position + Vector2(0, -760), "DODGE!", Color(0.45, 0.9, 1.0), 64)
 		Protocol.REMATCH:
 			_remote_rematch = true
