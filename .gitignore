@@ -3,6 +3,7 @@
 /android/
 *backstitch/
 *addons/
+.godot_editor/
 
 # Web export output
 /build/

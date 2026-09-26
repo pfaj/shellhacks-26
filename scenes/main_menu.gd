@@ -14,11 +14,6 @@ func _on_button_pressed() -> void:
 	print("Loading online match...")
 
 
-func _on_setting_button_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/settings.tscn")
-	print("Loading settings...")
-
-
 func _on_tilt_test_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/tilt_test.tscn")
 	print("Loading tilt test...")
