@@ -2,12 +2,12 @@ extends Control
 
 const NET_INTERVAL := 1.0 / 20.0
 const MAX_TILT_DEGREES := 30.0
-const DEADZONE_DEGREES := 2.0
-const TILT_SMOOTHING := 12.0
+const DEADZONE_DEGREES := 1.5
+const TILT_SMOOTHING := 22.0
 const ACTION_LABEL_TIME := 0.6
 const IMPACT_DELAY := 0.12
-const JAB_REACH := 300.0
-const PUNCH_REACH := 340.0
+const JAB_REACH := 330.0
+const PUNCH_REACH := 380.0
 const MAX_HP := 100
 const JAB_DAMAGE := 7
 const PUNCH_DAMAGE := 12

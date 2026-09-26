@@ -1,7 +1,7 @@
 class_name Fighter
 extends Node2D
 
-const MOVE_RANGE := 130.0
+const MOVE_RANGE := 95.0
 const SKIN_ROOT := "res://assets/fighters/"
 const EXTENSIONS: Array[String] = [".png", ".svg", ".webp"]
 const LAYERS := {
@@ -38,9 +38,9 @@ func setup(color: Color, base_x: float, scale_factor: float, facing_left: bool, 
 
 
 func set_move(value: float, delta: float) -> void:
-	_move = lerpf(_move, value, clampf(delta * 8.0, 0.0, 1.0))
+	_move = lerpf(_move, value, clampf(delta * 16.0, 0.0, 1.0))
 	position.x = _base_x + _move * MOVE_RANGE
-	_lean.rotation = lerpf(_lean.rotation, _move * 0.12, clampf(delta * 10.0, 0.0, 1.0))
+	_lean.rotation = lerpf(_lean.rotation, _move * 0.12, clampf(delta * 16.0, 0.0, 1.0))
 
 
 func play_action(kind: String) -> bool:
