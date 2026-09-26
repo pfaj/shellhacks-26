@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://dvvu06i3v6irh"]
 
 [ext_resource type="Script" uid="uid://chgisq7gnej3k" path="res://scenes/main_menu.gd" id="1_l6cm7"]
+[ext_resource type="Texture2D" uid="uid://bt64qx1fn8h3c" path="res://images/6d0f457b4f88f06a53ea547e418119f1.jpg" id="2_bqqt6"]
 [ext_resource type="PackedScene" uid="uid://c6qkceewxhvli" path="res://scenes/websocket.tscn" id="2_ekxnf"]
 
 [node name="Node2D" type="Control" unique_id=1384207152]
@@ -24,10 +25,19 @@ theme_override_constants/margin_top = 200
 theme_override_constants/margin_right = 200
 theme_override_constants/margin_bottom = 200
 
+[node name="Logo" type="TextureRect" parent="MarginContainer" unique_id=1669217153]
+layout_mode = 2
+
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1279980220]
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_constants/separation = 20
+
+[node name="Logo" type="TextureRect" parent="MarginContainer/VBoxContainer" unique_id=926197993]
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("2_bqqt6")
+expand_mode = 5
 
 [node name="PlayButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=306886588]
 layout_mode = 2
@@ -35,6 +45,7 @@ text = "PLAY
 "
 
 [node name="SettingButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=249217484]
+visible = false
 layout_mode = 2
 text = "SETTINGS"
 

@@ -49,7 +49,7 @@ func _on_countdown_timeout() -> void:
 	_countdown.text = STEPS[_step]
 	_step += 1
 	if _step >= STEPS.size():
-		_status.text = "Gameplay integration next"
+		get_tree().change_scene_to_file("res://scenes/play_screen.tscn")
 
 
 func _on_leave_pressed() -> void:

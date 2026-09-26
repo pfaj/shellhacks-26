@@ -2,11 +2,5 @@
 
 [ext_resource type="Script" uid="uid://6g3mjkq46jlp" path="res://scenes/play_screen.gd" id="1_gp3co"]
 
-[node name="Control" type="Control" unique_id=713169607]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="Control" type="Node2D" unique_id=1310862460]
 script = ExtResource("1_gp3co")

@@ -15,6 +15,11 @@ var state       := State.IDLE
 var left_key_down  := false
 var right_key_down := false
 
+func _ready() -> void:
+	pass
+	# load player info
+
+
 func _input(event: InputEvent) -> void:
 	match event:
 		_ when event is InputEventScreenTouch:
