@@ -1,11 +1,13 @@
 class_name Fighter
 extends Node2D
 
+signal attack_started(kind: String)
+
 const MOVE_RANGE := 60.0
 const LEAN_ANGLE := 0.22
 const JAB_CHAIN_LIMIT := 2
-const ATTACK_CHAIN_WINDOW := 0.4
-const JAB_CHAIN_COOLDOWN := 0.5
+const ATTACK_CHAIN_WINDOW := 0.6
+const JAB_CHAIN_COOLDOWN := 0.9
 const SKIN_ROOT := "res://assets/fighters/"
 const EXTENSIONS: Array[String] = [".png", ".svg", ".webp"]
 const LAYERS := {
@@ -27,6 +29,7 @@ var _block_held := false
 var _cooldown := 0.0
 var _chain_timer := 0.0
 var _jab_count := 0
+var _buffered := ""
 
 
 func _ready() -> void:
@@ -52,6 +55,7 @@ func setup(color: Color, base_x: float, scale_factor: float, facing_left: bool, 
 	_cooldown = 0.0
 	_chain_timer = 0.0
 	_jab_count = 0
+	_buffered = ""
 	_anim.play(_animation_name(Action.IDLE), 0.0)
 
 
@@ -64,9 +68,9 @@ func set_move(value: float, delta: float) -> void:
 func play_action(kind: String) -> bool:
 	match kind:
 		Protocol.JAB:
-			return _request(Action.JAB)
+			return _request_attack(Action.JAB, Protocol.JAB)
 		Protocol.PUNCH:
-			return _request(Action.PUNCH)
+			return _request_attack(Action.PUNCH, Protocol.PUNCH)
 		Protocol.HURT:
 			return _request(Action.HURT)
 		Protocol.KO:
@@ -79,6 +83,7 @@ func set_block(value: bool) -> void:
 	if state == Action.KO or state == Action.HURT:
 		return
 	if value:
+		_buffered = ""
 		_set_state(Action.BLOCK)
 	elif state == Action.BLOCK:
 		_set_state(Action.IDLE)
@@ -93,21 +98,28 @@ func _request(action: Action) -> bool:
 		Action.HURT:
 			if state == Action.KO:
 				return false
+			_buffered = ""
 			_set_state(Action.HURT)
 			return true
 		Action.KO:
+			_buffered = ""
 			_set_state(Action.KO)
 			return true
-		Action.JAB, Action.PUNCH:
-			return _request_attack(action)
 	return false
 
 
-func _request_attack(action: Action) -> bool:
+func _request_attack(action: Action, kind: String) -> bool:
 	if _cooldown > 0.0:
 		return false
-	if state != Action.IDLE and state != Action.JAB and state != Action.PUNCH:
+	if state != Action.IDLE:
+		if _buffered.is_empty() and state != Action.HURT and state != Action.KO and state != Action.BLOCK:
+			_buffered = kind
 		return false
+	_start_attack(action, kind)
+	return true
+
+
+func _start_attack(action: Action, kind: String) -> void:
 	if action == Action.JAB:
 		_jab_count += 1
 		if _jab_count >= JAB_CHAIN_LIMIT:
@@ -120,7 +132,26 @@ func _request_attack(action: Action) -> bool:
 		_jab_count = 0
 		_chain_timer = 0.0
 	_set_state(action, true)
-	return true
+	attack_started.emit(kind)
+
+
+func _on_animation_finished(_anim_name: StringName) -> void:
+	if state == Action.KO:
+		return
+	if not _buffered.is_empty():
+		var kind := _buffered
+		_buffered = ""
+		if _cooldown <= 0.0:
+			_start_attack(_action_for(kind), kind)
+			return
+	if state == Action.JAB or state == Action.PUNCH or state == Action.HURT:
+		_set_state(Action.BLOCK if _block_held else Action.IDLE)
+
+
+func _action_for(kind: String) -> Action:
+	if kind == Protocol.PUNCH:
+		return Action.PUNCH
+	return Action.JAB
 
 
 func _set_state(next: Action, force := false) -> void:
@@ -129,13 +160,6 @@ func _set_state(next: Action, force := false) -> void:
 	state = next
 	_anim.play(_animation_name(next), _blend_time(next))
 	_play_sound(next)
-
-
-func _on_animation_finished(_anim_name: StringName) -> void:
-	if state == Action.KO:
-		return
-	if state == Action.JAB or state == Action.PUNCH or state == Action.HURT:
-		_set_state(Action.BLOCK if _block_held else Action.IDLE)
 
 
 func _animation_name(action: Action) -> String:

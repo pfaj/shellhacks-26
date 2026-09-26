@@ -5,7 +5,6 @@ const MAX_TILT_DEGREES := 30.0
 const DEADZONE_DEGREES := 1.5
 const TILT_SMOOTHING := 22.0
 const ACTION_LABEL_TIME := 0.6
-const IMPACT_DELAY := 0.12
 const JAB_REACH := 330.0
 const PUNCH_REACH := 380.0
 const MAX_HP := 100
@@ -102,6 +101,7 @@ func _ready() -> void:
 	_controls.tapped.connect(_on_tapped)
 	_controls.held.connect(_on_held)
 	_controls.block_changed.connect(_on_block_changed)
+	_local.attack_started.connect(_on_attack_started)
 	_exit_button.pressed.connect(_on_exit_pressed)
 	_rematch_button.pressed.connect(_on_rematch_pressed)
 	_result_exit_button.pressed.connect(_on_exit_pressed)
@@ -195,12 +195,18 @@ func _on_block_changed(blocking: bool) -> void:
 func _land_action(kind: String) -> void:
 	if _match_over:
 		return
-	if not _local.play_action(kind):
-		return
+	_local.play_action(kind)
+
+
+func _on_attack_started(kind: String) -> void:
 	_local_action.text = kind.to_upper()
 	_local_action_time = ACTION_LABEL_TIME
 	Net.send({"t": Protocol.ACT, "kind": kind})
-	get_tree().create_timer(IMPACT_DELAY).timeout.connect(_resolve_hit.bind(kind))
+	get_tree().create_timer(_impact_delay(kind)).timeout.connect(_resolve_hit.bind(kind))
+
+
+func _impact_delay(kind: String) -> float:
+	return 0.14 if kind == Protocol.PUNCH else 0.08
 
 
 func _resolve_hit(kind: String) -> void:
