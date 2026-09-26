@@ -72,7 +72,7 @@ layout_mode = 0
 offset_left = 40.0
 offset_top = 40.0
 offset_right = 500.0
-offset_bottom = 320.0
+offset_bottom = 500.0
 theme_override_constants/separation = 6
 
 [node name="LocalName" type="Label" parent="UI/LocalPanel"]
@@ -87,6 +87,23 @@ size_flags_horizontal = 0
 [node name="LocalAction" type="Label" parent="UI/LocalPanel"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 44
+
+[node name="LocalHpBg" type="ColorRect" parent="UI/LocalPanel"]
+custom_minimum_size = Vector2(320, 36)
+layout_mode = 2
+color = Color(0.1, 0.1, 0.12, 0.85)
+
+[node name="LocalHpGhost" type="ColorRect" parent="UI/LocalPanel/LocalHpBg"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 36.0
+color = Color(1, 1, 1, 0.35)
+
+[node name="LocalHpFill" type="ColorRect" parent="UI/LocalPanel/LocalHpBg"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 36.0
+color = Color(0.9, 0.26, 0.29, 1)
 
 [node name="LocalTiltBg" type="ColorRect" parent="UI/LocalPanel"]
 custom_minimum_size = Vector2(320, 24)
@@ -106,7 +123,7 @@ anchor_right = 1.0
 offset_left = -500.0
 offset_top = 40.0
 offset_right = -40.0
-offset_bottom = 320.0
+offset_bottom = 500.0
 theme_override_constants/separation = 6
 
 [node name="RemoteName" type="Label" parent="UI/RemotePanel"]
@@ -123,6 +140,23 @@ size_flags_horizontal = 8
 layout_mode = 2
 theme_override_font_sizes/font_size = 44
 horizontal_alignment = 2
+
+[node name="RemoteHpBg" type="ColorRect" parent="UI/RemotePanel"]
+custom_minimum_size = Vector2(320, 36)
+layout_mode = 2
+color = Color(0.1, 0.1, 0.12, 0.85)
+
+[node name="RemoteHpGhost" type="ColorRect" parent="UI/RemotePanel/RemoteHpBg"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 36.0
+color = Color(1, 1, 1, 0.35)
+
+[node name="RemoteHpFill" type="ColorRect" parent="UI/RemotePanel/RemoteHpBg"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 36.0
+color = Color(0.25, 0.55, 0.95, 1)
 
 [node name="RemoteTiltBg" type="ColorRect" parent="UI/RemotePanel"]
 custom_minimum_size = Vector2(320, 24)
@@ -162,4 +196,53 @@ offset_bottom = -50.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_font_sizes/font_size = 40
+horizontal_alignment = 1
+
+[node name="Result" type="ColorRect" parent="UI"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.72)
+
+[node name="Box" type="VBoxContainer" parent="UI/Result"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -420.0
+offset_top = -340.0
+offset_right = 420.0
+offset_bottom = 340.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 40
+alignment = 1
+
+[node name="ResultLabel" type="Label" parent="UI/Result/Box"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 120
+text = "YOU WIN"
+horizontal_alignment = 1
+
+[node name="RematchButton" type="Button" parent="UI/Result/Box"]
+custom_minimum_size = Vector2(0, 140)
+layout_mode = 2
+theme_override_font_sizes/font_size = 56
+text = "REMATCH"
+
+[node name="ResultExitButton" type="Button" parent="UI/Result/Box"]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "BACK TO MENU"
+
+[node name="ResultStatus" type="Label" parent="UI/Result/Box"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
 horizontal_alignment = 1
