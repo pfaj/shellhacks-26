@@ -1,0 +1,44 @@
+[gd_scene format=3 uid="uid://dvvu06i3v6irh"]
+
+[ext_resource type="Script" uid="uid://chgisq7gnej3k" path="res://scenes/main_menu.gd" id="1_l6cm7"]
+[ext_resource type="PackedScene" uid="uid://c6qkceewxhvli" path="res://scenes/websocket.tscn" id="2_ekxnf"]
+
+[node name="Node2D" type="Control" unique_id=1384207152]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_l6cm7")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=2081189000]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 200
+theme_override_constants/margin_top = 200
+theme_override_constants/margin_right = 200
+theme_override_constants/margin_bottom = 200
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1279980220]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 20
+
+[node name="PlayButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=306886588]
+layout_mode = 2
+text = "PLAY
+"
+
+[node name="SettingButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=249217484]
+layout_mode = 2
+text = "SETTINGS"
+
+[node name="Websocket" parent="." unique_id=596286745 instance=ExtResource("2_ekxnf")]
+
+[connection signal="pressed" from="MarginContainer/VBoxContainer/PlayButton" to="." method="_on_button_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/SettingButton" to="." method="_on_setting_button_pressed"]
