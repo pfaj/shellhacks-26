@@ -1,6 +1,27 @@
 [gd_scene format=3 uid="uid://bummohw7ojdmn"]
 
 [ext_resource type="Script" uid="uid://6g3mjkq46jlp" path="res://scenes/play_screen.gd" id="1_gp3co"]
+[ext_resource type="PackedScene" uid="uid://x8it631sce0o" path="res://scenes/player.tscn" id="2_eu81p"]
+[ext_resource type="Script" uid="uid://bpshiq4l03jav" path="res://scenes/control.gd" id="3_xveuj"]
 
 [node name="Control" type="Node2D" unique_id=1310862460]
 script = ExtResource("1_gp3co")
+
+[node name="Player" parent="." unique_id=1522907323 instance=ExtResource("2_eu81p")]
+unique_name_in_owner = true
+position = Vector2(815, 1292)
+
+[node name="Player2" parent="." unique_id=940702106 instance=ExtResource("2_eu81p")]
+unique_name_in_owner = true
+position = Vector2(365, 666)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1806198413]
+
+[node name="Control" type="Control" parent="CanvasLayer" unique_id=2058092484]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_xveuj")
