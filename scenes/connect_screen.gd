@@ -9,6 +9,7 @@ extends Control
 
 
 func _ready() -> void:
+	Sfx.play_music("menu")
 	_profile_label.text = "PLAYING AS  %s" % Net.my_name
 	_create_button.pressed.connect(_on_create_pressed)
 	_join_button.pressed.connect(_on_join_pressed)

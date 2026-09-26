@@ -26,6 +26,7 @@ var _selected := 0
 
 
 func _ready() -> void:
+	Sfx.play_music("menu")
 	_room_label.text = "ROOM  %s" % Net.room_code
 	_status.text = "Waiting for opponent..."
 	_qr.texture = _make_qr_texture(_join_url())

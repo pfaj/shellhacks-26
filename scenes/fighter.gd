@@ -1,7 +1,11 @@
 class_name Fighter
 extends Node2D
 
-const MOVE_RANGE := 95.0
+const MOVE_RANGE := 60.0
+const LEAN_ANGLE := 0.22
+const JAB_CHAIN_LIMIT := 2
+const ATTACK_CHAIN_WINDOW := 0.4
+const JAB_CHAIN_COOLDOWN := 0.5
 const SKIN_ROOT := "res://assets/fighters/"
 const EXTENSIONS: Array[String] = [".png", ".svg", ".webp"]
 const LAYERS := {
@@ -20,10 +24,21 @@ var state := Action.IDLE
 var _base_x := 0.0
 var _move := 0.0
 var _block_held := false
+var _cooldown := 0.0
+var _chain_timer := 0.0
+var _jab_count := 0
 
 
 func _ready() -> void:
 	_anim.animation_finished.connect(_on_animation_finished)
+
+
+func _process(delta: float) -> void:
+	_cooldown = maxf(_cooldown - delta, 0.0)
+	if _chain_timer > 0.0:
+		_chain_timer = maxf(_chain_timer - delta, 0.0)
+		if _chain_timer == 0.0:
+			_jab_count = 0
 
 
 func setup(color: Color, base_x: float, scale_factor: float, facing_left: bool, skin := "default") -> void:
@@ -34,13 +49,16 @@ func setup(color: Color, base_x: float, scale_factor: float, facing_left: bool, 
 	_apply_color(color)
 	_apply_skin(skin)
 	state = Action.IDLE
+	_cooldown = 0.0
+	_chain_timer = 0.0
+	_jab_count = 0
 	_anim.play(_animation_name(Action.IDLE), 0.0)
 
 
 func set_move(value: float, delta: float) -> void:
 	_move = lerpf(_move, value, clampf(delta * 16.0, 0.0, 1.0))
 	position.x = _base_x + _move * MOVE_RANGE
-	_lean.rotation = lerpf(_lean.rotation, _move * 0.12, clampf(delta * 16.0, 0.0, 1.0))
+	_lean.rotation = lerpf(_lean.rotation, _move * LEAN_ANGLE, clampf(delta * 16.0, 0.0, 1.0))
 
 
 func play_action(kind: String) -> bool:
@@ -81,14 +99,32 @@ func _request(action: Action) -> bool:
 			_set_state(Action.KO)
 			return true
 		Action.JAB, Action.PUNCH:
-			if state == Action.IDLE:
-				_set_state(action)
-				return true
+			return _request_attack(action)
 	return false
 
 
-func _set_state(next: Action) -> void:
-	if next == state:
+func _request_attack(action: Action) -> bool:
+	if _cooldown > 0.0:
+		return false
+	if state != Action.IDLE and state != Action.JAB and state != Action.PUNCH:
+		return false
+	if action == Action.JAB:
+		_jab_count += 1
+		if _jab_count >= JAB_CHAIN_LIMIT:
+			_jab_count = 0
+			_chain_timer = 0.0
+			_cooldown = JAB_CHAIN_COOLDOWN
+		else:
+			_chain_timer = ATTACK_CHAIN_WINDOW
+	else:
+		_jab_count = 0
+		_chain_timer = 0.0
+	_set_state(action, true)
+	return true
+
+
+func _set_state(next: Action, force := false) -> void:
+	if next == state and not force:
 		return
 	state = next
 	_anim.play(_animation_name(next), _blend_time(next))

@@ -16,6 +16,7 @@ var _running := true
 
 
 func _ready() -> void:
+	Sfx.play_music("fight")
 	_left_color.color = Net.my_color
 	_left_name.text = Net.my_name
 	_right_color.color = Net.peer_color

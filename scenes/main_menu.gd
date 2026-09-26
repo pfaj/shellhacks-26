@@ -2,7 +2,7 @@ extends Control
 
 
 func _ready() -> void:
-	pass
+	Sfx.play_music("menu")
 
 
 func _process(delta: float) -> void:
