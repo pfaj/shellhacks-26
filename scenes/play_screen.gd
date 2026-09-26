@@ -12,6 +12,7 @@ const MAX_HP := 100
 const JAB_DAMAGE := 7
 const PUNCH_DAMAGE := 12
 const RESULT_DELAY := 1.1
+const DAMAGE_DRIFT := -100.0
 
 var _tilt: JavaScriptObject = null
 var _neutral := 0.0
@@ -183,6 +184,7 @@ func _resolve_incoming_hit(kind: String) -> void:
 	var damage := PUNCH_DAMAGE if kind == Protocol.PUNCH else JAB_DAMAGE
 	_local_hp = maxi(_local_hp - damage, 0)
 	_animate_hp(true, damage)
+	_spawn_damage_number(_local, damage)
 	Net.send({"t": Protocol.HIT_RESULT, "blocked": false, "damage": damage, "hp": _local_hp})
 	if _local_hp <= 0:
 		_local.play_action(Protocol.KO)
@@ -196,6 +198,7 @@ func _apply_hit_result(message: Dictionary) -> void:
 	var damage := int(message.get("damage", 0))
 	_remote_hp = int(message.get("hp", _remote_hp))
 	_animate_hp(false, damage)
+	_spawn_damage_number(_remote, damage)
 	_remote.play_action(Protocol.HURT)
 	_remote_action.text = "HURT"
 	_remote_action_time = ACTION_LABEL_TIME
@@ -298,6 +301,31 @@ func _animate_hp(local: bool, damage: int) -> void:
 	bg.pivot_offset = bg.size * 0.5
 	bg.scale = Vector2(1.16, 1.16)
 	tween.tween_property(bg, "scale", Vector2.ONE, 0.18)
+
+
+func _spawn_damage_number(victim: Node2D, damage: int) -> void:
+	if damage <= 0:
+		return
+	var heavy := damage >= PUNCH_DAMAGE
+	var label := Label.new()
+	label.text = str(damage)
+	label.add_theme_font_size_override("font_size", 76 if heavy else 58)
+	label.add_theme_color_override("font_color", Color(1.0, 0.45, 0.2) if heavy else Color(1.0, 0.9, 0.35))
+	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
+	label.add_theme_constant_override("outline_size", 12)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.size = Vector2(140, 90)
+	label.pivot_offset = label.size * 0.5
+	label.position = victim.position + Vector2(-70, -540)
+	label.scale = Vector2(0.4, 0.4)
+	$Fighters.add_child(label)
+	var target_y := label.position.y + DAMAGE_DRIFT
+	var tween := create_tween()
+	tween.tween_property(label, "scale", Vector2(1.3, 1.3), 0.08)
+	tween.tween_property(label, "scale", Vector2.ONE, 0.08)
+	tween.tween_property(label, "position:y", target_y, 0.55).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.55).set_delay(0.3)
+	tween.chain().tween_callback(label.queue_free)
 
 
 func _tick_action_labels(delta: float) -> void:
