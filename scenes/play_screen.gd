@@ -1,9 +1,12 @@
 extends Control
 
 const NET_INTERVAL := 1.0 / 20.0
-const MAX_TILT_DEGREES := 30.0
-const DEADZONE_DEGREES := 1.5
+const TILT_STEP_DEGREES := 8.0
 const TILT_SMOOTHING := 22.0
+const LOCAL_X := 0.18
+const LOCAL_Y := 0.82
+const REMOTE_X := 0.70
+const REMOTE_Y := 0.67
 const MAX_HP := 100
 const JAB_DAMAGE := 5
 const PUNCH_DAMAGE := 12
@@ -13,7 +16,7 @@ const ROUND_BREAK := 1.6
 const ROUND_TIME := 60.0
 const ROUNDS_TO_WIN := 2
 const COMBO_WINDOW := 1.4
-const DODGE_THRESHOLD := 0.35
+const DODGE_THRESHOLD := 0.5
 const SHAKE_TIME := 0.18
 const SHAKE_STRENGTH := 12.0
 const HIT_STOP_TIME := 0.07
@@ -49,8 +52,10 @@ var _hit_stop_active := false
 func _ready() -> void:
 	if OS.has_feature("web"):
 		_tilt = JavaScriptBridge.get_interface("sockemTilt")
-	_local.setup(Net.my_color, 360.0, true)
-	_remote.setup(Net.peer_color, 730.0, false)
+	_local.setup(Net.my_color, true)
+	_remote.setup(Net.peer_color, false)
+	_layout_fighters()
+	resized.connect(_layout_fighters)
 	_local.attack_started.connect(_on_attack_started)
 	_hud.setup(Net.my_name, Net.my_color, Net.peer_name, Net.peer_color, $Fighters)
 	_hud.set_timer(ROUND_TIME)
@@ -91,12 +96,20 @@ func _input(event: InputEvent) -> void:
 	_controls.handle_event(event, size.x * 0.5)
 
 
+func _layout_fighters() -> void:
+	_local.place(Vector2(size.x * LOCAL_X, size.y * LOCAL_Y))
+	_remote.place(Vector2(size.x * REMOTE_X, size.y * REMOTE_Y))
+
+
 func _update_tilt(delta: float) -> void:
 	_smoothed_gamma = lerpf(_smoothed_gamma, _raw_gamma(), clampf(delta * TILT_SMOOTHING, 0.0, 1.0))
 	var value := _smoothed_gamma - _neutral
-	if absf(value) < DEADZONE_DEGREES:
-		value = 0.0
-	_move = clampf(value / MAX_TILT_DEGREES, -1.0, 1.0)
+	if value > TILT_STEP_DEGREES:
+		_move = 1.0
+	elif value < -TILT_STEP_DEGREES:
+		_move = -1.0
+	else:
+		_move = 0.0
 
 
 func _update_round_timer(delta: float) -> void:

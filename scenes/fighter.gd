@@ -41,7 +41,7 @@ const PEER_CONTENT_BOTTOM := 0.935
 const LOCAL_CONTENT_CENTER := 0.518
 const PEER_CONTENT_CENTER := 0.500
 const IDLE_FRAME_TIME := 0.45
-const DODGE_THRESHOLD := 0.35
+const DODGE_THRESHOLD := 0.5
 const MOVE_SMOOTHING := 16.0
 const JAB_CHAIN_LIMIT := 2
 const ATTACK_CHAIN_WINDOW := 0.6
@@ -57,7 +57,6 @@ enum Action { IDLE, JAB, PUNCH, BLOCK, HURT, KO }
 
 var state := Action.IDLE
 var _local := true
-var _base_x := 0.0
 var _move := 0.0
 var _block_held := false
 var _cooldown := 0.0
@@ -89,10 +88,8 @@ func _process(delta: float) -> void:
 	_refresh_pose()
 
 
-func setup(color: Color, base_x: float, is_local: bool) -> void:
+func setup(color: Color, is_local: bool) -> void:
 	_local = is_local
-	_base_x = base_x
-	position.x = base_x
 	_load_poses(is_local)
 	_sprite.self_modulate = color
 	_sprite.centered = false
@@ -118,6 +115,10 @@ func setup(color: Color, base_x: float, is_local: bool) -> void:
 	_idle_frame = 0
 	_idle_timer = 0.0
 	_refresh_pose()
+
+
+func place(new_position: Vector2) -> void:
+	position = new_position
 
 
 func set_move(value: float, delta: float) -> void:
