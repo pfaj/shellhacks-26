@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://c1gmgad5bdrwj"
-path="res://.godot/imported/Groan.wav-ef7c2b720c4bf0c3670a8aceac9495a2.sample"
+uid="uid://665hfq7lhlh1"
+path="res://.godot/imported/hurt.wav-a9d11b3d1ac193942e951edb76661c81.sample"
 
 [deps]
 
-source_file="res://assets/audio/sfx/Groan.wav"
-dest_files=["res://.godot/imported/Groan.wav-ef7c2b720c4bf0c3670a8aceac9495a2.sample"]
+source_file="res://assets/audio/sfx/hurt.wav"
+dest_files=["res://.godot/imported/hurt.wav-a9d11b3d1ac193942e951edb76661c81.sample"]
 
 [params]
 
