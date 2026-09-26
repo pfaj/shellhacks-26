@@ -6,6 +6,9 @@ const DEADZONE_DEGREES := 2.0
 const TILT_SMOOTHING := 12.0
 const ACTION_LABEL_TIME := 0.6
 const TILT_BAR_WIDTH := 320.0
+const IMPACT_DELAY := 0.12
+const JAB_REACH := 300.0
+const PUNCH_REACH := 340.0
 
 var _tilt: JavaScriptObject = null
 var _neutral := 0.0
@@ -92,10 +95,19 @@ func _on_block_changed(blocking: bool) -> void:
 
 
 func _land_action(kind: String) -> void:
-	_local.play_action(kind)
+	if not _local.play_action(kind):
+		return
 	_local_action.text = kind.to_upper()
 	_local_action_time = ACTION_LABEL_TIME
 	Net.send({"t": Protocol.ACT, "kind": kind})
+	get_tree().create_timer(IMPACT_DELAY).timeout.connect(_resolve_hit.bind(kind))
+
+
+func _resolve_hit(kind: String) -> void:
+	var reach := PUNCH_REACH if kind == Protocol.PUNCH else JAB_REACH
+	if absf(_local.position.x - _remote.position.x) > reach:
+		return
+	Net.send({"t": Protocol.HIT, "kind": kind})
 
 
 func _send_input() -> void:
@@ -113,6 +125,26 @@ func _on_peer_message(message: Dictionary) -> void:
 			_remote.play_action(kind)
 			_remote_action.text = kind.to_upper()
 			_remote_action_time = ACTION_LABEL_TIME
+		Protocol.HIT:
+			_resolve_incoming_hit()
+		Protocol.HIT_RESULT:
+			if bool(message.get("blocked", false)):
+				_remote.block_hit()
+			else:
+				_remote.play_action(Protocol.HURT)
+				_remote_action.text = "HURT"
+				_remote_action_time = ACTION_LABEL_TIME
+
+
+func _resolve_incoming_hit() -> void:
+	if _controls.blocking:
+		_local.block_hit()
+		Net.send({"t": Protocol.HIT_RESULT, "blocked": true})
+	else:
+		_local.play_action(Protocol.HURT)
+		_local_action.text = "HURT"
+		_local_action_time = ACTION_LABEL_TIME
+		Net.send({"t": Protocol.HIT_RESULT, "blocked": false})
 
 
 func _tick_action_labels(delta: float) -> void:

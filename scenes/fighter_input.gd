@@ -12,10 +12,12 @@ var blocking := false
 
 var _left_touch := -1
 var _right_touch := -1
-var _hold_timer := 0.0
-var _hold_fired := false
 var _left_key := false
 var _right_key := false
+var _hold_timer := 0.0
+var _hold_fired := false
+var _left_block_used := false
+var _right_block_used := false
 
 
 func handle_event(event: InputEvent, half_width: float) -> void:
@@ -44,6 +46,8 @@ func reset() -> void:
 	_right_touch = -1
 	_left_key = false
 	_right_key = false
+	_left_block_used = false
+	_right_block_used = false
 	_reset_hold()
 	_set_blocking(false)
 
@@ -71,10 +75,7 @@ func _release(index: int) -> void:
 		side = Side.RIGHT
 	else:
 		return
-	if not _hold_fired:
-		tapped.emit(side)
-	_reset_hold()
-	_refresh_block()
+	_finish_press(side)
 
 
 func _key(keycode: int, pressed: bool) -> void:
@@ -93,20 +94,36 @@ func _key(keycode: int, pressed: bool) -> void:
 			_refresh_block()
 	elif is_left and _left_key:
 		_left_key = false
-		if not _hold_fired:
-			tapped.emit(Side.LEFT)
-		_reset_hold()
-		_refresh_block()
+		_finish_press(Side.LEFT)
 	elif is_right and _right_key:
 		_right_key = false
-		if not _hold_fired:
-			tapped.emit(Side.RIGHT)
-		_reset_hold()
-		_refresh_block()
+		_finish_press(Side.RIGHT)
+
+
+func _finish_press(side: int) -> void:
+	var suppressed := _consume_block(side)
+	if not _hold_fired and not suppressed:
+		tapped.emit(side)
+	_reset_hold()
+	_refresh_block()
+
+
+func _consume_block(side: int) -> bool:
+	if side == Side.LEFT:
+		var used := _left_block_used
+		_left_block_used = false
+		return used
+	var used := _right_block_used
+	_right_block_used = false
+	return used
 
 
 func _refresh_block() -> void:
-	_set_blocking(_left_pressed() and _right_pressed())
+	var both := _left_pressed() and _right_pressed()
+	if both:
+		_left_block_used = true
+		_right_block_used = true
+	_set_blocking(both)
 
 
 func _set_blocking(value: bool) -> void:

@@ -2,6 +2,7 @@ class_name Fighter
 extends Node2D
 
 const MOVE_RANGE := 130.0
+const ATTACK_COOLDOWN := 0.3
 const SKIN_ROOT := "res://assets/fighters/"
 const EXTENSIONS: Array[String] = [".png", ".svg", ".webp"]
 const LAYERS := {
@@ -20,10 +21,15 @@ var state := Action.IDLE
 var _base_x := 0.0
 var _move := 0.0
 var _block_held := false
+var _cooldown := 0.0
 
 
 func _ready() -> void:
 	_anim.animation_finished.connect(_on_animation_finished)
+
+
+func _process(delta: float) -> void:
+	_cooldown = maxf(_cooldown - delta, 0.0)
 
 
 func setup(color: Color, base_x: float, scale_factor: float, facing_left: bool, skin := "default") -> void:
@@ -34,6 +40,7 @@ func setup(color: Color, base_x: float, scale_factor: float, facing_left: bool, 
 	_apply_color(color)
 	_apply_skin(skin)
 	state = Action.IDLE
+	_cooldown = 0.0
 	_anim.play(_animation_name(Action.IDLE), 0.0)
 
 
@@ -43,16 +50,17 @@ func set_move(value: float, delta: float) -> void:
 	_lean.rotation = lerpf(_lean.rotation, _move * 0.12, clampf(delta * 10.0, 0.0, 1.0))
 
 
-func play_action(kind: String) -> void:
+func play_action(kind: String) -> bool:
 	match kind:
 		Protocol.JAB:
-			_request(Action.JAB)
+			return _request(Action.JAB)
 		Protocol.PUNCH:
-			_request(Action.PUNCH)
+			return _request(Action.PUNCH)
 		Protocol.HURT:
-			_request(Action.HURT)
+			return _request(Action.HURT)
 		Protocol.KO:
-			_request(Action.KO)
+			return _request(Action.KO)
+	return false
 
 
 func set_block(value: bool) -> void:
@@ -69,16 +77,24 @@ func block_hit() -> void:
 	Sfx.play(Protocol.BLOCK, 0.05)
 
 
-func _request(action: Action) -> void:
+func _request(action: Action) -> bool:
 	match action:
 		Action.HURT:
-			if state != Action.KO:
-				_set_state(Action.HURT)
+			if state == Action.KO:
+				return false
+			_set_state(Action.HURT)
+			return true
 		Action.KO:
 			_set_state(Action.KO)
+			return true
 		Action.JAB, Action.PUNCH:
+			if _cooldown > 0.0:
+				return false
 			if state == Action.IDLE or state == Action.JAB or state == Action.PUNCH:
+				_cooldown = ATTACK_COOLDOWN
 				_set_state(action, true)
+				return true
+	return false
 
 
 func _set_state(next: Action, force := false) -> void:

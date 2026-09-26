@@ -11,6 +11,8 @@ const PROFILE := "profile"
 const SET_READY := "set_ready"
 const INPUT := "input"
 const ACT := "act"
+const HIT := "hit"
+const HIT_RESULT := "hit_result"
 
 const JAB := "jab"
 const PUNCH := "punch"
