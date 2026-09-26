@@ -4,9 +4,8 @@ const NET_INTERVAL := 1.0 / 20.0
 const TILT_ENTER_DEGREES := 18.0
 const TILT_EXIT_DEGREES := 10.0
 const TILT_SMOOTHING := 22.0
-const BOT_SEPARATION := 0.23
-const LOCAL_Y := 0.88
-const REMOTE_Y := 0.75
+const LOCAL_Y := 0.92
+const REMOTE_Y := 0.55
 const MAX_HP := 100
 const JAB_DAMAGE := 5
 const PUNCH_DAMAGE := 12
@@ -111,10 +110,9 @@ func _layout_stage() -> void:
 	var rope_mid_y := stage_height * 0.14 / size.y
 	_rope_mid.anchor_top = rope_mid_y
 	_rope_mid.anchor_bottom = rope_mid_y
-	var separation := stage_height * BOT_SEPARATION
 	var center := size.x * 0.5
-	_local.place(Vector2(center + separation * 0.5, stage_height * LOCAL_Y))
-	_remote.place(Vector2(center - separation * 0.5, stage_height * REMOTE_Y))
+	_local.place(Vector2(center, stage_height * LOCAL_Y))
+	_remote.place(Vector2(center, stage_height * REMOTE_Y))
 
 
 func _update_tilt(delta: float) -> void:
