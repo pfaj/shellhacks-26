@@ -185,11 +185,17 @@ func _impact_delay(kind: String) -> float:
 func _resolve_hit(kind: String) -> void:
 	if _match_over:
 		return
-	if _move > 0.0 and _remote_move > 0.0:
+	if _mutual_disengage():
 		Net.send({"t": Protocol.MISS})
 		_hud.show_floating_text(_remote.position + Vector2(0, -700), "MISS", Color(0.75, 0.75, 0.85), 52)
 		return
 	Net.send({"t": Protocol.HIT, "kind": kind})
+
+
+func _mutual_disengage() -> bool:
+	if absf(_move) <= DODGE_THRESHOLD or absf(_remote_move) <= DODGE_THRESHOLD:
+		return false
+	return signf(_move) == signf(_remote_move)
 
 
 func _send_input() -> void:
