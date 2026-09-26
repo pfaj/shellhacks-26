@@ -20,7 +20,6 @@ boot_splash/show_image=false
 [autoload]
 
 Net="*res://scenes/net.gd"
-Tilt="*res://scenes/tilt.gd"
 
 [display]
 

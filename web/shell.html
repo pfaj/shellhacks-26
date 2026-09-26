@@ -85,7 +85,13 @@ body {
 	font-size: 44px;
 	font-weight: 700;
 	letter-spacing: 8px;
-	margin-bottom: 28px;
+	margin-bottom: 16px;
+}
+
+#sockem-boot-hint {
+	font-family: system-ui, sans-serif;
+	font-size: 16px;
+	opacity: .55;
 }
 
 #status-notice {
@@ -138,6 +144,16 @@ function sockemStartTilt() {
 	}
 }
 
+(function () {
+	function requestOnce() {
+		window.removeEventListener('touchend', requestOnce, true);
+		window.removeEventListener('click', requestOnce, true);
+		sockemStartTilt();
+	}
+	window.addEventListener('touchend', requestOnce, true);
+	window.addEventListener('click', requestOnce, true);
+})();
+
 function sockemGetRoom() {
 	var params = new URLSearchParams(window.location.search);
 	var room = (params.get('room') || '').trim().toUpperCase();
@@ -185,6 +201,7 @@ function sockemQRPng(url, size) {
 
 		<div id="status">
 			<div id="sockem-boot-title">SOCK'EM</div>
+			<div id="sockem-boot-hint">First tap will ask for motion access - allow it for tilt controls</div>
 			<img id="status-splash" class="$GODOT_SPLASH_CLASSES" src="$GODOT_SPLASH" alt="">
 			<progress id="status-progress"></progress>
 			<div id="status-notice"></div>
