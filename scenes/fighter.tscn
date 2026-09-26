@@ -1,40 +1,287 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scenes/fighter.gd" id="1_fighter"]
+
+[sub_resource type="Animation" id="Animation_idle"]
+resource_name = "idle"
+length = 1.6
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Lean/Rig:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.8, 1.6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(0, -10), Vector2(0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Lean/Rig/ArmRightSlot:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.8, 1.6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.08, -0.04, 0.08]
+}
+
+[sub_resource type="Animation" id="Animation_jab"]
+resource_name = "jab"
+length = 0.26
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Lean/Rig/ArmRightSlot:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.07, 0.26),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0, -1.45, 0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Lean/Rig:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.07, 0.26),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(14, 0), Vector2(0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_punch"]
+resource_name = "punch"
+length = 0.4
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Lean/Rig/ArmLeftSlot:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0, -1.9, 0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Lean/Rig:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0, -0.12, 0]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Lean/Rig:position")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(18, 0), Vector2(0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_block"]
+resource_name = "block"
+length = 0.5
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Lean/Rig/ArmLeftSlot:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.25, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [-2.4, -2.3, -2.4]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Lean/Rig/ArmRightSlot:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.25, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [-2.5, -2.6, -2.5]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Lean/Rig:position")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.25, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(0, -6), Vector2(0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_hurt"]
+resource_name = "hurt"
+length = 0.35
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Lean/Rig:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.08, 0.35),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0, 0.22, 0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Lean/Rig:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.08, 0.35),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(-26, 0), Vector2(0, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Lean/Rig/HeadSlot:position")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.08, 0.35),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0, -300), Vector2(-14, -292), Vector2(0, -300)]
+}
+
+[sub_resource type="Animation" id="Animation_ko"]
+resource_name = "ko"
+length = 1.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Lean/Rig:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1.0),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0, 1.5]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Lean/Rig:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1.0),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(0, 40)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_base"]
+_data = {
+"block": SubResource("Animation_block"),
+"hurt": SubResource("Animation_hurt"),
+"idle": SubResource("Animation_idle"),
+"jab": SubResource("Animation_jab"),
+"ko": SubResource("Animation_ko"),
+"punch": SubResource("Animation_punch")
+}
 
 [node name="Fighter" type="Node2D"]
 script = ExtResource("1_fighter")
 
-[node name="Body" type="Node2D" parent="."]
+[node name="Shadow" type="ColorRect" parent="."]
+offset_left = -100.0
+offset_top = -16.0
+offset_right = 100.0
+offset_bottom = -2.0
+color = Color(0, 0, 0, 0.35)
 
-[node name="Torso" type="ColorRect" parent="Body"]
+[node name="Lean" type="Node2D" parent="."]
+
+[node name="Rig" type="Node2D" parent="Lean"]
+
+[node name="ArmLeftSlot" type="Node2D" parent="Lean/Rig"]
+position = Vector2(-80, -270)
+
+[node name="ArmLeftSprite" type="Sprite2D" parent="Lean/Rig/ArmLeftSlot"]
+visible = false
+
+[node name="ArmLeftPlaceholder" type="ColorRect" parent="Lean/Rig/ArmLeftSlot"]
+offset_left = -28.0
+offset_right = 28.0
+offset_bottom = 190.0
+color = Color(1, 0.4, 0.42, 1)
+
+[node name="TorsoSlot" type="Node2D" parent="Lean/Rig"]
+
+[node name="TorsoSprite" type="Sprite2D" parent="Lean/Rig/TorsoSlot"]
+visible = false
+
+[node name="TorsoPlaceholder" type="ColorRect" parent="Lean/Rig/TorsoSlot"]
 offset_left = -90.0
 offset_top = -300.0
 offset_right = 90.0
 offset_bottom = 0.0
 color = Color(0.9, 0.26, 0.29, 1)
 
-[node name="Head" type="ColorRect" parent="Body"]
+[node name="HeadSlot" type="Node2D" parent="Lean/Rig"]
+position = Vector2(0, -300)
+
+[node name="HeadSprite" type="Sprite2D" parent="Lean/Rig/HeadSlot"]
+visible = false
+
+[node name="HeadPlaceholder" type="ColorRect" parent="Lean/Rig/HeadSlot"]
 offset_left = -60.0
-offset_top = -420.0
+offset_top = -120.0
 offset_right = 60.0
-offset_bottom = -300.0
+offset_bottom = 0.0
 color = Color(0.7, 0.2, 0.22, 1)
 
-[node name="ArmLPivot" type="Node2D" parent="Body"]
-position = Vector2(-80, -270)
-
-[node name="ArmL" type="ColorRect" parent="Body/ArmLPivot"]
-offset_left = -28.0
-offset_right = 28.0
-offset_bottom = 190.0
-color = Color(1, 0.4, 0.42, 1)
-
-[node name="ArmRPivot" type="Node2D" parent="Body"]
+[node name="ArmRightSlot" type="Node2D" parent="Lean/Rig"]
 position = Vector2(80, -270)
 
-[node name="ArmR" type="ColorRect" parent="Body/ArmRPivot"]
+[node name="ArmRightSprite" type="Sprite2D" parent="Lean/Rig/ArmRightSlot"]
+visible = false
+
+[node name="ArmRightPlaceholder" type="ColorRect" parent="Lean/Rig/ArmRightSlot"]
 offset_left = -28.0
 offset_right = 28.0
 offset_bottom = 190.0
 color = Color(1, 0.4, 0.42, 1)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_base")
+}

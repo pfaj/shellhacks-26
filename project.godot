@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 Net="*res://scenes/net.gd"
+Sfx="*res://scenes/sfx.gd"
 
 [display]
 

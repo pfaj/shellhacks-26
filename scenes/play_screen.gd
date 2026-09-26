@@ -57,6 +57,7 @@ func _ready() -> void:
 	Net.peer_message.connect(_on_peer_message)
 	Net.peer_left.connect(_on_peer_left)
 	Net.status_changed.connect(_on_status_changed)
+	Sfx.play_music("fight")
 
 
 func _process(delta: float) -> void:
@@ -190,9 +191,8 @@ func _fire_hold(side: Side) -> void:
 
 
 func _land_action(side: Side) -> void:
-	var hand := "left" if side == Side.LEFT else "right"
-	var kind := "jab" if hand == "left" else "punch"
-	_local.punch(hand)
+	var kind := "jab" if side == Side.LEFT else "punch"
+	_local.play_action(kind)
 	_local_action.text = kind.to_upper()
 	_local_action_time = ACTION_LABEL_TIME
 	Net.send({"t": "act", "kind": kind})
@@ -210,7 +210,7 @@ func _on_peer_message(message: Dictionary) -> void:
 			_remote.set_block(_remote_blocking)
 		"act":
 			var kind := str(message.get("kind", "jab"))
-			_remote.punch("left" if kind == "jab" else "right")
+			_remote.play_action(kind)
 			_remote_action.text = kind.to_upper()
 			_remote_action_time = ACTION_LABEL_TIME
 
@@ -231,6 +231,7 @@ func _tick_action_labels(delta: float) -> void:
 
 
 func _on_peer_left() -> void:
+	_remote.play_action("ko")
 	_status.text = "Opponent disconnected"
 
 
@@ -240,6 +241,7 @@ func _on_status_changed(text: String) -> void:
 
 
 func _on_exit_pressed() -> void:
+	Sfx.stop_music()
 	Net.leave()
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
@@ -248,10 +250,6 @@ func _raw_gamma() -> float:
 	if _tilt == null:
 		return 0.0
 	return float(_tilt.gamma)
-
-
-func _side_name(side: Side) -> String:
-	return "left" if side == Side.LEFT else "right"
 
 
 func _left_pressed() -> bool:
