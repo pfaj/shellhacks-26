@@ -46,8 +46,8 @@ const LOCAL_ALIGN := {
 const PEER_ALIGN := {
 	"idle_a": Vector2(0.4716, 0.9352),
 	"idle_b": Vector2(0.4738, 0.9352),
-	"jab": Vector2(0.5080, 0.9280),
-	"punch": Vector2(0.4629, 0.9166),
+	"jab": Vector2(0.4629, 0.9166),
+	"punch": Vector2(0.5080, 0.9280),
 	"block": Vector2(0.4905, 0.9280),
 	"hurt_l": Vector2(0.5291, 0.9259),
 	"hurt_r": Vector2(0.4822, 0.9259),
