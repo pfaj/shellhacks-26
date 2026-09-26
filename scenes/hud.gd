@@ -175,7 +175,7 @@ func show_damage(victim: Node2D, damage: int, blocked: bool) -> void:
 	var heavy := damage >= PUNCH_DAMAGE
 	var font_size := 44 if blocked else (76 if heavy else 58)
 	var color := Color(0.85, 0.85, 0.9) if blocked else (Color(1.0, 0.45, 0.2) if heavy else Color(1.0, 0.9, 0.35))
-	show_floating_text(victim.position + Vector2(0, -540), str(damage), color, font_size)
+	show_floating_text(victim.position + Vector2(0, -700), str(damage), color, font_size)
 
 
 func show_floating_text(origin: Vector2, text: String, color: Color, font_size: int) -> void:

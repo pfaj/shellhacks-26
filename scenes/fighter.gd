@@ -6,11 +6,12 @@ signal attack_started(kind: String)
 const POSE_DIR := "res://assets/fighters/Trial Run Bots/"
 const LOCAL_PREFIX := "Shellhacks_Bots_P1 "
 const PEER_PREFIX := "Shellhacks_Bots_Opponent "
+const FLIP := true
 const LOCAL_POSES := {
 	"idle_a": "Idle 1",
 	"idle_b": "Idle 2",
-	"jab": "Left Hook",
-	"punch": "Right Jab",
+	"jab": "Right Jab",
+	"punch": "Left Hook",
 	"block": "Block",
 	"hurt": "Hit Right",
 	"dodge_l": "Dodge L",
@@ -31,8 +32,8 @@ const PEER_POSES := {
 const ARTBOARD_WIDTH := 1373.0
 const ARTBOARD_HEIGHT := 1930.0
 const ARTBOARD_RATIO := ARTBOARD_WIDTH / ARTBOARD_HEIGHT
-const LOCAL_BOT_HEIGHT := 560.0
-const PEER_BOT_HEIGHT := 480.0
+const LOCAL_BOT_HEIGHT := 850.0
+const PEER_BOT_HEIGHT := 680.0
 const LOCAL_CONTENT_HEIGHT := 0.880
 const PEER_CONTENT_HEIGHT := 0.871
 const LOCAL_CONTENT_BOTTOM := 0.948
@@ -55,6 +56,7 @@ enum Action { IDLE, JAB, PUNCH, BLOCK, HURT, KO }
 @onready var _sprite: Sprite2D = $Sprite
 
 var state := Action.IDLE
+var _local := true
 var _base_x := 0.0
 var _move := 0.0
 var _block_held := false
@@ -88,11 +90,13 @@ func _process(delta: float) -> void:
 
 
 func setup(color: Color, base_x: float, is_local: bool) -> void:
+	_local = is_local
 	_base_x = base_x
 	position.x = base_x
 	_load_poses(is_local)
 	_sprite.self_modulate = color
 	_sprite.centered = false
+	_sprite.flip_h = FLIP
 	var bot_height := LOCAL_BOT_HEIGHT if is_local else PEER_BOT_HEIGHT
 	var content_height := LOCAL_CONTENT_HEIGHT if is_local else PEER_CONTENT_HEIGHT
 	var content_bottom := LOCAL_CONTENT_BOTTOM if is_local else PEER_CONTENT_BOTTOM
@@ -262,9 +266,9 @@ func _pose_key() -> String:
 		Action.KO:
 			return "ko"
 	if _move < -DODGE_THRESHOLD:
-		return "dodge_l"
+		return "dodge_r" if _local else "dodge_l"
 	if _move > DODGE_THRESHOLD:
-		return "dodge_r"
+		return "dodge_l" if _local else "dodge_r"
 	return "idle_a" if _idle_frame == 0 else "idle_b"
 
 

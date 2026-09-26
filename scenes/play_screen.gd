@@ -160,7 +160,7 @@ func _resolve_hit(kind: String) -> void:
 		return
 	if _remote_move < -DODGE_THRESHOLD:
 		Net.send({"t": Protocol.MISS})
-		_hud.show_floating_text(_remote.position + Vector2(0, -560), "MISS", Color(0.75, 0.75, 0.85), 52)
+		_hud.show_floating_text(_remote.position + Vector2(0, -700), "MISS", Color(0.75, 0.75, 0.85), 52)
 		return
 	Net.send({"t": Protocol.HIT, "kind": kind})
 
@@ -185,7 +185,7 @@ func _on_peer_message(message: Dictionary) -> void:
 			_apply_hit_result(message)
 		Protocol.MISS:
 			if _move < -DODGE_THRESHOLD:
-				_hud.show_floating_text(_local.position + Vector2(0, -620), "DODGE!", Color(0.45, 0.9, 1.0), 64)
+				_hud.show_floating_text(_local.position + Vector2(0, -760), "DODGE!", Color(0.45, 0.9, 1.0), 64)
 		Protocol.REMATCH:
 			_remote_rematch = true
 			_hud.set_result_status("Opponent wants a rematch")
