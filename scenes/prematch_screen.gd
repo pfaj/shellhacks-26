@@ -26,6 +26,7 @@ func _ready() -> void:
 	Net.peer_profile.connect(_on_peer_profile)
 	Net.peer_left.connect(_on_peer_left)
 	_status.text = "Get ready..."
+	Sfx.play("countdown")
 	_timer.start()
 
 
@@ -50,8 +51,6 @@ func _on_countdown_timeout() -> void:
 			get_tree().change_scene_to_file("res://scenes/play_screen.tscn")
 		return
 	_countdown.text = STEPS[_step]
-	if _step == STEPS.size() - 1:
-		Sfx.play("bell")
 	_step += 1
 	if _step >= STEPS.size():
 		_timer.wait_time = 0.9

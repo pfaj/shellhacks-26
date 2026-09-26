@@ -2,7 +2,7 @@ extends Node
 
 const SFX_DIR := "res://assets/audio/sfx/"
 const MUSIC_DIR := "res://assets/audio/music/"
-const SFX_NAMES: Array[String] = ["hit", "whoosh", "block", "hurt", "bell", "ko", "win", "lose"]
+const SFX_NAMES: Array[String] = ["hit", "whoosh", "block", "hurt", "bell", "ko", "win", "lose", "countdown"]
 const VARIANT_SUFFIXES: Array[String] = ["", "2", "3", "4", "5"]
 const EXTENSIONS: Array[String] = [".ogg", ".wav", ".mp3"]
 const POOL_SIZE := 8

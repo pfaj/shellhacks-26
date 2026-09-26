@@ -167,13 +167,13 @@ func _on_attack_started(kind: String) -> void:
 
 
 func _impact_delay(kind: String) -> float:
-	return 0.14 if kind == Protocol.PUNCH else 0.06
+	return 0.05
 
 
 func _resolve_hit(kind: String) -> void:
 	if _match_over:
 		return
-	if _move != _remote_move:
+	if _move != -_remote_move:
 		Net.send({"t": Protocol.MISS})
 		_hud.show_floating_text(_remote.position + Vector2(0, -700), "MISS", Color(0.75, 0.75, 0.85), 52)
 		return
