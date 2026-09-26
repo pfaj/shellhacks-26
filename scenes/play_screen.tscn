@@ -1,27 +1,165 @@
-[gd_scene format=3 uid="uid://bummohw7ojdmn"]
+[gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" uid="uid://6g3mjkq46jlp" path="res://scenes/play_screen.gd" id="1_gp3co"]
-[ext_resource type="PackedScene" uid="uid://x8it631sce0o" path="res://scenes/player.tscn" id="2_eu81p"]
-[ext_resource type="Script" uid="uid://bpshiq4l03jav" path="res://scenes/control.gd" id="3_xveuj"]
+[ext_resource type="Script" path="res://scenes/play_screen.gd" id="1_play"]
+[ext_resource type="PackedScene" path="res://scenes/fighter.tscn" id="2_fighter"]
 
-[node name="Control" type="Node2D" unique_id=1310862460]
-script = ExtResource("1_gp3co")
-
-[node name="Player" parent="." unique_id=1522907323 instance=ExtResource("2_eu81p")]
-unique_name_in_owner = true
-position = Vector2(815, 1292)
-
-[node name="Player2" parent="." unique_id=940702106 instance=ExtResource("2_eu81p")]
-unique_name_in_owner = true
-position = Vector2(365, 666)
-
-[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1806198413]
-
-[node name="Control" type="Control" parent="CanvasLayer" unique_id=2058092484]
+[node name="PlayScreen" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("3_xveuj")
+mouse_filter = 2
+script = ExtResource("1_play")
+
+[node name="Sky" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.09, 0.1, 0.14, 1)
+
+[node name="Floor" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_top = 0.62
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.16, 0.13, 0.18, 1)
+
+[node name="RopeTop" type="ColorRect" parent="."]
+layout_mode = 1
+anchor_top = 0.06
+anchor_right = 1.0
+anchor_bottom = 0.06
+offset_bottom = 14.0
+grow_horizontal = 2
+color = Color(1, 1, 1, 0.25)
+
+[node name="RopeMid" type="ColorRect" parent="."]
+layout_mode = 1
+anchor_top = 0.14
+anchor_right = 1.0
+anchor_bottom = 0.14
+offset_bottom = 10.0
+grow_horizontal = 2
+color = Color(1, 1, 1, 0.18)
+
+[node name="Fighters" type="Node2D" parent="."]
+
+[node name="LocalFighter" parent="Fighters" instance=ExtResource("2_fighter")]
+position = Vector2(360, 1560)
+
+[node name="RemoteFighter" parent="Fighters" instance=ExtResource("2_fighter")]
+position = Vector2(730, 1470)
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="LocalPanel" type="VBoxContainer" parent="UI"]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = 500.0
+offset_bottom = 320.0
+theme_override_constants/separation = 6
+
+[node name="LocalName" type="Label" parent="UI/LocalPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+
+[node name="LocalChip" type="ColorRect" parent="UI/LocalPanel"]
+custom_minimum_size = Vector2(90, 26)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="LocalAction" type="Label" parent="UI/LocalPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+
+[node name="LocalTiltBg" type="ColorRect" parent="UI/LocalPanel"]
+custom_minimum_size = Vector2(320, 24)
+layout_mode = 2
+color = Color(1, 1, 1, 0.15)
+
+[node name="LocalTiltFill" type="ColorRect" parent="UI/LocalPanel/LocalTiltBg"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 24.0
+color = Color(0.9, 0.26, 0.29, 1)
+
+[node name="RemotePanel" type="VBoxContainer" parent="UI"]
+layout_mode = 0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -500.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = 320.0
+theme_override_constants/separation = 6
+
+[node name="RemoteName" type="Label" parent="UI/RemotePanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+horizontal_alignment = 2
+
+[node name="RemoteChip" type="ColorRect" parent="UI/RemotePanel"]
+custom_minimum_size = Vector2(90, 26)
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="RemoteAction" type="Label" parent="UI/RemotePanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+horizontal_alignment = 2
+
+[node name="RemoteTiltBg" type="ColorRect" parent="UI/RemotePanel"]
+custom_minimum_size = Vector2(320, 24)
+layout_mode = 2
+color = Color(1, 1, 1, 0.15)
+
+[node name="RemoteTiltFill" type="ColorRect" parent="UI/RemotePanel/RemoteTiltBg"]
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 24.0
+color = Color(0.25, 0.55, 0.95, 1)
+
+[node name="ExitButton" type="Button" parent="UI"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -90.0
+offset_top = 40.0
+offset_right = 90.0
+offset_bottom = 140.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 36
+text = "EXIT"
+
+[node name="StatusLabel" type="Label" parent="UI"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -420.0
+offset_top = -150.0
+offset_right = 420.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 40
+horizontal_alignment = 1

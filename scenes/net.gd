@@ -7,6 +7,7 @@ signal room_full()
 signal peer_left()
 signal peer_profile(peer_name: String, peer_color: Color)
 signal peer_ready_changed(value: bool)
+signal peer_message(message: Dictionary)
 
 const RELAY_URL := "wss://sockem-relay.bdebiase2.workers.dev/ws"
 
@@ -142,6 +143,8 @@ func _handle_packet(text: String) -> void:
 		"set_ready":
 			peer_ready = bool(message.get("value", false))
 			peer_ready_changed.emit(peer_ready)
+		_:
+			peer_message.emit(message)
 
 
 func _make_code() -> String:

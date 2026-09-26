@@ -1,0 +1,40 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/fighter.gd" id="1_fighter"]
+
+[node name="Fighter" type="Node2D"]
+script = ExtResource("1_fighter")
+
+[node name="Body" type="Node2D" parent="."]
+
+[node name="Torso" type="ColorRect" parent="Body"]
+offset_left = -90.0
+offset_top = -300.0
+offset_right = 90.0
+offset_bottom = 0.0
+color = Color(0.9, 0.26, 0.29, 1)
+
+[node name="Head" type="ColorRect" parent="Body"]
+offset_left = -60.0
+offset_top = -420.0
+offset_right = 60.0
+offset_bottom = -300.0
+color = Color(0.7, 0.2, 0.22, 1)
+
+[node name="ArmLPivot" type="Node2D" parent="Body"]
+position = Vector2(-80, -270)
+
+[node name="ArmL" type="ColorRect" parent="Body/ArmLPivot"]
+offset_left = -28.0
+offset_right = 28.0
+offset_bottom = 190.0
+color = Color(1, 0.4, 0.42, 1)
+
+[node name="ArmRPivot" type="Node2D" parent="Body"]
+position = Vector2(80, -270)
+
+[node name="ArmR" type="ColorRect" parent="Body/ArmRPivot"]
+offset_left = -28.0
+offset_right = 28.0
+offset_bottom = 190.0
+color = Color(1, 0.4, 0.42, 1)
