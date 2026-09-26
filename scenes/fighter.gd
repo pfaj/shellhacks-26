@@ -31,17 +31,37 @@ const PEER_POSES := {
 	"dodge_r": "Dodge R",
 	"ko": "Knockout",
 }
+const LOCAL_ALIGN := {
+	"idle_a": Vector2(0.5244, 0.9477),
+	"idle_b": Vector2(0.5091, 0.9477),
+	"jab": Vector2(0.5299, 0.9684),
+	"punch": Vector2(0.4887, 0.9684),
+	"block": Vector2(0.5044, 0.9549),
+	"hurt_l": Vector2(0.5149, 0.9518),
+	"hurt_r": Vector2(0.5153, 0.9518),
+	"dodge_l": Vector2(0.4964, 0.9477),
+	"dodge_r": Vector2(0.5280, 0.9477),
+	"ko": Vector2(0.5051, 0.9539),
+}
+const PEER_ALIGN := {
+	"idle_a": Vector2(0.4716, 0.9352),
+	"idle_b": Vector2(0.4738, 0.9352),
+	"jab": Vector2(0.5080, 0.9280),
+	"punch": Vector2(0.4629, 0.9166),
+	"block": Vector2(0.4905, 0.9280),
+	"hurt_l": Vector2(0.5291, 0.9259),
+	"hurt_r": Vector2(0.4822, 0.9259),
+	"dodge_l": Vector2(0.4811, 0.9352),
+	"dodge_r": Vector2(0.4905, 0.9352),
+	"ko": Vector2(0.5055, 0.9394),
+}
 const ARTBOARD_WIDTH := 1373.0
 const ARTBOARD_HEIGHT := 1930.0
 const ARTBOARD_RATIO := ARTBOARD_WIDTH / ARTBOARD_HEIGHT
-const LOCAL_BOT_HEIGHT := 950.0
-const PEER_BOT_HEIGHT := 780.0
+const LOCAL_BOT_HEIGHT := 1150.0
+const PEER_BOT_HEIGHT := 950.0
 const LOCAL_CONTENT_HEIGHT := 0.880
 const PEER_CONTENT_HEIGHT := 0.871
-const LOCAL_CONTENT_BOTTOM := 0.948
-const PEER_CONTENT_BOTTOM := 0.935
-const LOCAL_CONTENT_CENTER := 0.518
-const PEER_CONTENT_CENTER := 0.500
 const IDLE_FRAME_TIME := 0.45
 const DODGE_THRESHOLD := 0.5
 const MOVE_SMOOTHING := 16.0
@@ -70,6 +90,9 @@ var _buffer_timer := 0.0
 var _pending_kind := ""
 var _reprime_timer := 0.0
 var _poses := {}
+var _align := {}
+var _draw_width := 0.0
+var _draw_height := 0.0
 var _idle_frame := 0
 var _idle_timer := 0.0
 var _state_timer := 0.0
@@ -103,20 +126,16 @@ func _process(delta: float) -> void:
 func setup(color: Color, is_local: bool) -> void:
 	_local = is_local
 	_load_poses(is_local)
+	_align = LOCAL_ALIGN if is_local else PEER_ALIGN
 	_sprite.self_modulate = color
 	_sprite.centered = false
 	_sprite.flip_h = FLIP
 	var bot_height := LOCAL_BOT_HEIGHT if is_local else PEER_BOT_HEIGHT
 	var content_height := LOCAL_CONTENT_HEIGHT if is_local else PEER_CONTENT_HEIGHT
-	var content_bottom := LOCAL_CONTENT_BOTTOM if is_local else PEER_CONTENT_BOTTOM
-	var content_center := LOCAL_CONTENT_CENTER if is_local else PEER_CONTENT_CENTER
-	var draw_height := bot_height / content_height
-	var factor := draw_height / ARTBOARD_HEIGHT
+	_draw_height = bot_height / content_height
+	_draw_width = _draw_height * ARTBOARD_RATIO
+	var factor := _draw_height / ARTBOARD_HEIGHT
 	_sprite.scale = Vector2(factor, factor)
-	_sprite.position = Vector2(
-		-content_center * draw_height * ARTBOARD_RATIO,
-		-content_bottom * draw_height
-	)
 	state = Action.IDLE
 	_cooldown = 0.0
 	_chain_timer = 0.0
@@ -273,9 +292,13 @@ func _update_idle(delta: float) -> void:
 
 
 func _refresh_pose() -> void:
-	var texture: Texture2D = _poses.get(_pose_key())
+	var key := _pose_key()
+	var texture: Texture2D = _poses.get(key)
 	if texture != null and _sprite.texture != texture:
 		_sprite.texture = texture
+	var alignment: Vector2 = _align.get(key, Vector2(0.5, 0.95))
+	var offset_x := -(1.0 - alignment.x) * _draw_width if FLIP else -alignment.x * _draw_width
+	_sprite.position = Vector2(offset_x, -alignment.y * _draw_height)
 
 
 func _pose_key() -> String:
