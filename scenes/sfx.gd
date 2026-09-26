@@ -2,7 +2,8 @@ extends Node
 
 const SFX_DIR := "res://assets/audio/sfx/"
 const MUSIC_DIR := "res://assets/audio/music/"
-const SFX_NAMES: Array[String] = ["jab", "punch", "block", "hurt", "whoosh", "bell", "ko", "win", "lose"]
+const SFX_NAMES: Array[String] = ["jab", "punch", "block", "hurt", "hit", "whoosh", "bell", "ko", "win", "lose"]
+const VARIANT_SUFFIXES: Array[String] = ["", "2", "3", "4", "5"]
 const EXTENSIONS: Array[String] = [".ogg", ".wav", ".mp3"]
 const POOL_SIZE := 8
 
@@ -14,9 +15,9 @@ var _music: AudioStreamPlayer
 
 func _ready() -> void:
 	for sound_name in SFX_NAMES:
-		var stream := _load_from(SFX_DIR, sound_name)
-		if stream != null:
-			_streams[sound_name] = stream
+		var variants := _load_variants(sound_name)
+		if not variants.is_empty():
+			_streams[sound_name] = variants
 	for i in POOL_SIZE:
 		var player := AudioStreamPlayer.new()
 		add_child(player)
@@ -28,9 +29,10 @@ func _ready() -> void:
 func play(sound: String, pitch_variation := 0.0) -> void:
 	if not _streams.has(sound):
 		return
+	var variants: Array = _streams[sound]
 	var player := _players[_next]
 	_next = (_next + 1) % _players.size()
-	player.stream = _streams[sound]
+	player.stream = variants.pick_random()
 	player.pitch_scale = 1.0 + randf_range(-pitch_variation, pitch_variation)
 	player.play()
 
@@ -45,6 +47,15 @@ func play_music(track: String) -> void:
 
 func stop_music() -> void:
 	_music.stop()
+
+
+func _load_variants(base_name: String) -> Array:
+	var variants: Array = []
+	for suffix in VARIANT_SUFFIXES:
+		var stream := _load_from(SFX_DIR, base_name + suffix)
+		if stream != null:
+			variants.append(stream)
+	return variants
 
 
 func _load_from(directory: String, base_name: String) -> AudioStream:

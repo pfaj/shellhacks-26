@@ -106,6 +106,7 @@ func _land_action(kind: String) -> void:
 func _resolve_hit(kind: String) -> void:
 	var reach := PUNCH_REACH if kind == Protocol.PUNCH else JAB_REACH
 	if absf(_local.position.x - _remote.position.x) > reach:
+		Sfx.play("whoosh", 0.05)
 		return
 	Net.send({"t": Protocol.HIT, "kind": kind})
 

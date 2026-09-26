@@ -134,6 +134,7 @@ func _play_sound(action: Action) -> void:
 			Sfx.play(Protocol.PUNCH, 0.05)
 		Action.HURT:
 			Sfx.play(Protocol.HURT, 0.05)
+			Sfx.play(Protocol.HIT, 0.08)
 		Action.KO:
 			Sfx.play(Protocol.KO)
 
