@@ -3,6 +3,7 @@ extends Control
 
 func _ready() -> void:
 	Sfx.play_music("menu")
+	$MarginContainer/VBoxContainer/WinsLabel.text = "LIFETIME WINS  %d" % Net.my_wins
 
 
 func _process(delta: float) -> void:

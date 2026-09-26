@@ -13,9 +13,11 @@ const RELAY_URL := "wss://sockem-relay.bdebiase2.workers.dev/ws"
 
 var my_name := "Player"
 var my_color := Color(0.9, 0.26, 0.29)
+var my_wins := 0
 var my_ready := false
 var peer_name := "Opponent"
 var peer_color := Color(0.25, 0.55, 0.95)
+var peer_wins := 0
 var peer_ready := false
 var peer_connected := false
 var room_code := ""
@@ -51,6 +53,7 @@ func leave() -> void:
 	peer_connected = false
 	local_rounds = 0
 	remote_rounds = 0
+	peer_wins = 0
 
 
 func send(message: Dictionary) -> void:
@@ -73,26 +76,44 @@ func save_profile(new_name: String, new_color: Color) -> void:
 	if my_name.is_empty():
 		my_name = "Player"
 	my_color = new_color
-	var config := ConfigFile.new()
-	config.set_value("profile", "name", my_name)
-	config.set_value("profile", "color", my_color)
-	config.save("user://profile.cfg")
+	_save_profile()
+
+
+func add_win() -> void:
+	my_wins += 1
+	_save_profile()
 
 
 func broadcast_profile() -> void:
-	send({"t": Protocol.PROFILE, "name": my_name, "color": my_color.to_html(false)})
+	send({
+		"t": Protocol.PROFILE,
+		"name": my_name,
+		"color": my_color.to_html(false),
+		"wins": my_wins,
+	})
+
+
+func _save_profile() -> void:
+	var config := ConfigFile.new()
+	config.set_value("profile", "name", my_name)
+	config.set_value("profile", "color", my_color)
+	config.set_value("profile", "wins", my_wins)
+	config.save("user://profile.cfg")
 
 
 func _load_profile() -> void:
 	var config := ConfigFile.new()
-	if config.load("user://profile.cfg") == OK:
-		my_name = str(config.get_value("profile", "name", my_name))
-		my_color = config.get_value("profile", "color", my_color)
+	if config.load("user://profile.cfg") != OK:
+		return
+	my_name = str(config.get_value("profile", "name", my_name))
+	my_color = config.get_value("profile", "color", my_color)
+	my_wins = int(config.get_value("profile", "wins", 0))
 
 
 func _start(code: String) -> void:
 	room_code = code
 	peer_connected = false
+	peer_wins = 0
 	reset_ready()
 	local_rounds = 0
 	remote_rounds = 0
@@ -145,6 +166,7 @@ func _handle_packet(text: String) -> void:
 		Protocol.PROFILE:
 			peer_name = str(message.get("name", "Opponent"))
 			peer_color = Color.html(str(message.get("color", "ff4444")))
+			peer_wins = int(message.get("wins", 0))
 			peer_profile.emit(peer_name, peer_color)
 		Protocol.SET_READY:
 			peer_ready = bool(message.get("value", false))
