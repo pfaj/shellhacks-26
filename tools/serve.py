@@ -13,7 +13,7 @@ mimetypes.add_type("application/wasm", ".wasm")
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
-        self.send_header("Cache-Control", "no-store")
+        self.send_header("Cache-Control", "no-cache")
         super().end_headers()
 
 

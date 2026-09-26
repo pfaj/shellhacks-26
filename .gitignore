@@ -3,3 +3,8 @@
 /android/
 *backstitch/
 *addons/
+
+# Web export output
+/build/
+.DS_Store
+backstitch.cfg
