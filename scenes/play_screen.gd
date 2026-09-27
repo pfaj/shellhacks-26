@@ -216,7 +216,6 @@ func _update_combo(delta: float) -> void:
 	if _combo_timer <= 0.0:
 		return
 	_combo_timer = maxf(_combo_timer - delta, 0.0)
-	_hud.set_combo_ratio(_combo_timer / COMBO_WINDOW)
 	if _combo_timer == 0.0:
 		_local_combo = 0
 		_hud.hide_combo()

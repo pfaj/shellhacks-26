@@ -7,7 +7,6 @@ const MAX_HP := 100
 const PUNCH_DAMAGE := 12
 const ACTION_LABEL_TIME := 0.6
 const DAMAGE_DRIFT := -100.0
-const COMBO_BAR_WIDTH := 560.0
 const COMBO_HOT := Color(1.0, 0.55, 0.15)
 
 var _world: Node2D = null
@@ -23,8 +22,6 @@ var _dot: Texture2D
 var _ring: Texture2D
 var _local_color := Color.WHITE
 var _peer_color := Color.WHITE
-var _combo_bar_bg: ColorRect
-var _combo_fill: ColorRect
 var _hint: Label
 var _hint_tween: Tween
 
@@ -75,28 +72,7 @@ func _ready() -> void:
 	Ui.press_pop(_rematch_button)
 	Ui.press_pop(_result_exit_button)
 	Ui.press_pop(_exit_button)
-	_build_combo_bar()
 	_build_hint()
-
-
-func _build_combo_bar() -> void:
-	_combo_bar_bg = ColorRect.new()
-	_combo_bar_bg.color = Color(1, 1, 1, 0.16)
-	_combo_bar_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_combo_bar_bg.visible = false
-	_combo_bar_bg.anchor_left = 0.5
-	_combo_bar_bg.anchor_right = 0.5
-	_combo_bar_bg.offset_left = -COMBO_BAR_WIDTH * 0.5
-	_combo_bar_bg.offset_right = COMBO_BAR_WIDTH * 0.5
-	_combo_bar_bg.offset_top = 322.0
-	_combo_bar_bg.offset_bottom = 342.0
-	add_child(_combo_bar_bg)
-	_combo_fill = ColorRect.new()
-	_combo_fill.color = Ui.ACCENT
-	_combo_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_combo_fill.offset_right = COMBO_BAR_WIDTH
-	_combo_fill.offset_bottom = 20.0
-	_combo_bar_bg.add_child(_combo_fill)
 
 
 func _build_hint() -> void:
@@ -203,25 +179,14 @@ func show_combo(count: int, multiplier: float) -> void:
 		hide_combo()
 		return
 	_combo_label.visible = true
-	_combo_bar_bg.visible = true
 	_combo_label.text = "%d HITS   x%.2f" % [count, multiplier]
-	_combo_fill.color = Ui.ACCENT.lerp(COMBO_HOT, clampf((count - 2) / 8.0, 0.0, 1.0))
-	_combo_fill.offset_right = COMBO_BAR_WIDTH
 	_combo_label.pivot_offset = _combo_label.size * 0.5
 	_combo_label.scale = Vector2(1.25, 1.25)
 	create_tween().tween_property(_combo_label, "scale", Vector2.ONE, 0.12)
 
 
-func set_combo_ratio(ratio: float) -> void:
-	if _combo_bar_bg == null or not _combo_bar_bg.visible:
-		return
-	_combo_fill.offset_right = COMBO_BAR_WIDTH * clampf(ratio, 0.0, 1.0)
-
-
 func hide_combo() -> void:
 	_combo_label.visible = false
-	if _combo_bar_bg != null:
-		_combo_bar_bg.visible = false
 
 
 func show_hint(text: String) -> void:
