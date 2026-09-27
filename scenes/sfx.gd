@@ -29,6 +29,33 @@ func _ready() -> void:
 		var music_player := AudioStreamPlayer.new()
 		add_child(music_player)
 		_music_players.append(music_player)
+	if OS.has_feature("web"):
+		var window := JavaScriptBridge.get_interface("window")
+		window.sockemPauseAudio = JavaScriptBridge.create_callback(_on_web_pause)
+		window.sockemResumeAudio = JavaScriptBridge.create_callback(_on_web_resume)
+
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED:
+			_set_paused(true)
+		NOTIFICATION_APPLICATION_FOCUS_IN, NOTIFICATION_APPLICATION_RESUMED:
+			_set_paused(false)
+
+
+func _on_web_pause(_args: Array) -> void:
+	_set_paused(true)
+
+
+func _on_web_resume(_args: Array) -> void:
+	_set_paused(false)
+
+
+func _set_paused(paused: bool) -> void:
+	for player in _players:
+		player.stream_paused = paused
+	for player in _music_players:
+		player.stream_paused = paused
 
 
 func play(sound: String, pitch_variation := 0.0, pitch := 1.0) -> void:

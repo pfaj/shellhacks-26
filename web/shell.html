@@ -300,6 +300,33 @@ function sockemHideTextInput() {
 		}
 	}, true);
 })();
+
+(function () {
+	function setHidden(hidden) {
+		if (hidden) {
+			if (window.sockemPauseAudio) {
+				window.sockemPauseAudio();
+			}
+		} else if (window.sockemResumeAudio) {
+			window.sockemResumeAudio();
+		}
+	}
+	document.addEventListener('visibilitychange', function () {
+		setHidden(document.hidden);
+	}, true);
+	window.addEventListener('pagehide', function () {
+		setHidden(true);
+	}, true);
+	window.addEventListener('pageshow', function () {
+		setHidden(false);
+	}, true);
+	window.addEventListener('blur', function () {
+		setHidden(true);
+	}, false);
+	window.addEventListener('focus', function () {
+		setHidden(false);
+	}, false);
+})();
 		</script>
 		$GODOT_HEAD_INCLUDE
 	</head>
