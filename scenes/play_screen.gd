@@ -49,6 +49,8 @@ var _intro := false
 var _intro_step := 0
 var _intro_timer := 0.0
 var _first_round := true
+var _vs: VsScreen
+var _vs_active := false
 
 @onready var _local: Fighter = $Fighters/LocalFighter
 @onready var _remote: Fighter = $Fighters/RemoteFighter
@@ -84,6 +86,9 @@ func _ready() -> void:
 		var bot := Bot.new()
 		bot.game = self
 		add_child(bot)
+	_vs = VsScreen.new()
+	_vs.setup(Net.my_color, Net.peer_color)
+	add_child(_vs)
 	_start_round()
 
 
@@ -100,7 +105,7 @@ func _process(delta: float) -> void:
 		_intro_timer -= delta
 		_local.set_move(0.0, delta)
 		_remote.set_move(0.0, delta)
-		if _intro_timer <= 0.0:
+		if _intro_timer <= 0.0 and not _vs_active:
 			_advance_intro()
 		return
 	if _match_over:
@@ -437,9 +442,6 @@ func _start_round() -> void:
 	_hud.hide_result()
 	_hud.hide_ko()
 	_hud.set_status("")
-	if _first_round:
-		_hud.play_intro()
-		_first_round = false
 	_hud.set_timer(ROUND_TIME)
 	_hud.set_pips(Net.local_rounds, Net.remote_rounds)
 	_local.reset_round()
@@ -448,6 +450,19 @@ func _start_round() -> void:
 	_intro = true
 	_intro_step = -1
 	_intro_timer = 0.0
+	if _first_round:
+		_first_round = false
+		_run_vs_intro()
+	else:
+		_advance_intro()
+
+
+func _run_vs_intro() -> void:
+	_vs_active = true
+	_hud.play_intro()
+	await _vs.play(Ui.wipe_covered)
+	Ui.wipe_covered = false
+	_vs_active = false
 	_advance_intro()
 
 

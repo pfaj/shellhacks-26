@@ -5,6 +5,8 @@ const ACCENT := Color("2f81f7")
 const WIN := Color("4ade80")
 const LOSS := Color("f87171")
 
+static var wipe_covered := false
+
 
 static func flat(bg: Color, border := Color(0, 0, 0, 0), radius := 18) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
