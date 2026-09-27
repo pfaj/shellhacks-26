@@ -84,6 +84,8 @@ func _on_room_ready() -> void:
 	_qr_hint.visible = false
 	_fighters.visible = true
 	_ready_button.visible = true
+	if OS.has_feature("web"):
+		WebTextInput.refresh.call_deferred()
 	_refresh_peer_ready(Net.peer_ready)
 	_status.text = "Set your name and color, then ready up"
 	_bob_portraits()

@@ -225,6 +225,30 @@ window.clankerTextChanged = null;
 var clankerInputHotspot = null;
 var clankerTextInput = null;
 
+function clankerTouchCapable() {
+	return ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+}
+
+function clankerHotspotRect() {
+	if (!clankerInputHotspot) {
+		return null;
+	}
+	var canvas = document.getElementById('canvas');
+	if (!canvas || clankerInputHotspot.vw <= 0 || clankerInputHotspot.vh <= 0) {
+		return null;
+	}
+	var r = canvas.getBoundingClientRect();
+	var h = clankerInputHotspot;
+	var sx = r.width / h.vw;
+	var sy = r.height / h.vh;
+	return {
+		x: r.left + h.gx * sx,
+		y: r.top + h.gy * sy,
+		w: h.gw * sx,
+		h: h.gh * sy
+	};
+}
+
 function clankerTextInputElement() {
 	if (!clankerTextInput) {
 		var el = document.createElement('input');
@@ -255,6 +279,9 @@ function clankerTextInputElement() {
 				clankerHideTextInput();
 			}
 		});
+		el.addEventListener('blur', function () {
+			el.style.display = 'none';
+		});
 		document.body.appendChild(el);
 		clankerTextInput = el;
 	}
@@ -262,18 +289,16 @@ function clankerTextInputElement() {
 }
 
 function clankerRegisterTextInput(gx, gy, gw, gh, vw, vh, maxLength, value) {
-	if (!('ontouchstart' in window)) {
+	if (!clankerTouchCapable()) {
 		return;
 	}
-	var canvas = document.getElementById('canvas');
-	var r = canvas.getBoundingClientRect();
-	var sx = r.width / vw;
-	var sy = r.height / vh;
 	clankerInputHotspot = {
-		x: r.left + gx * sx,
-		y: r.top + gy * sy,
-		w: gw * sx,
-		h: gh * sy,
+		gx: gx,
+		gy: gy,
+		gw: gw,
+		gh: gh,
+		vw: vw,
+		vh: vh,
 		maxLength: maxLength || 32,
 		value: value || ''
 	};
@@ -284,22 +309,50 @@ function clankerUnregisterTextInput() {
 	clankerHideTextInput();
 }
 
-function clankerShowTextInput() {
+function clankerPositionTextInput() {
+	var rect = clankerHotspotRect();
+	if (!rect) {
+		return null;
+	}
 	var el = clankerTextInputElement();
-	var h = clankerInputHotspot;
-	if (!h) {
+	el.maxLength = clankerInputHotspot.maxLength;
+	el.value = clankerInputHotspot.value;
+	el.style.left = rect.x + 'px';
+	el.style.top = rect.y + 'px';
+	el.style.width = rect.w + 'px';
+	el.style.height = rect.h + 'px';
+	el.style.fontSize = Math.max(16, rect.h * 0.5) + 'px';
+	return el;
+}
+
+function clankerShowTextInput() {
+	var el = clankerPositionTextInput();
+	if (!el) {
 		return;
 	}
-	el.maxLength = h.maxLength;
-	el.value = h.value;
-	el.style.left = h.x + 'px';
-	el.style.top = h.y + 'px';
-	el.style.width = h.w + 'px';
-	el.style.height = h.h + 'px';
-	el.style.fontSize = Math.max(16, h.h * 0.5) + 'px';
 	el.style.display = 'block';
-	el.focus();
-	el.setSelectionRange(el.value.length, el.value.length);
+	el.removeAttribute('readonly');
+	clankerFocusTextInput(el);
+}
+
+function clankerFocusTextInput(el) {
+	try {
+		el.focus({ preventScroll: true });
+	} catch (err) {
+		el.focus();
+	}
+	if (document.activeElement !== el) {
+		requestAnimationFrame(function () {
+			try {
+				el.focus({ preventScroll: true });
+			} catch (err) {
+				el.focus();
+			}
+		});
+	}
+	try {
+		el.setSelectionRange(el.value.length, el.value.length);
+	} catch (err) {}
 }
 
 function clankerHideTextInput() {
@@ -311,18 +364,27 @@ function clankerHideTextInput() {
 
 (function () {
 	function inside(x, y) {
-		if (!clankerInputHotspot) {
-			return false;
-		}
-		var h = clankerInputHotspot;
-		return x >= h.x && x <= h.x + h.w && y >= h.y && y <= h.y + h.h;
+		var rect = clankerHotspotRect();
+		return !!rect && x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h;
 	}
+	window.addEventListener('touchstart', function (event) {
+		var touches = event.changedTouches || [];
+		for (var i = 0; i < touches.length; i++) {
+			if (inside(touches[i].clientX, touches[i].clientY)) {
+				var el = clankerPositionTextInput();
+				if (el) {
+					el.style.display = 'block';
+				}
+				return;
+			}
+		}
+	}, true);
 	window.addEventListener('touchend', function (event) {
 		var touches = event.changedTouches || [];
 		for (var i = 0; i < touches.length; i++) {
 			if (inside(touches[i].clientX, touches[i].clientY)) {
-				event.preventDefault();
 				clankerShowTextInput();
+				event.preventDefault();
 				return;
 			}
 		}
