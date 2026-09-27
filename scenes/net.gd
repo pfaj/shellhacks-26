@@ -8,6 +8,7 @@ signal peer_left()
 signal peer_profile(peer_name: String, peer_color: Color)
 signal peer_ready_changed(value: bool)
 signal peer_message(message: Dictionary)
+signal local_message(message: Dictionary)
 
 const RELAY_URL := "wss://sockem-relay.bdebiase2.workers.dev/ws"
 
@@ -26,6 +27,7 @@ var room_code := ""
 var my_slot := -1
 var local_rounds := 0
 var remote_rounds := 0
+var local_mode := false
 
 var _socket := WebSocketPeer.new()
 var _active := false
@@ -57,11 +59,19 @@ func leave() -> void:
 	remote_rounds = 0
 	peer_wins = 0
 	peer_losses = 0
+	local_mode = false
 
 
 func send(message: Dictionary) -> void:
+	if local_mode:
+		local_message.emit(message)
+		return
 	if _socket.get_ready_state() == WebSocketPeer.STATE_OPEN:
 		_socket.send_text(JSON.stringify(message))
+
+
+func inject_peer(message: Dictionary) -> void:
+	peer_message.emit(message)
 
 
 func send_ready(value: bool) -> void:
