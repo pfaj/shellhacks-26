@@ -1,4 +1,4 @@
-const STALE_MS = 60000;
+const STALE_MS = 120000;
 
 export class Room {
   constructor(state, env) {
@@ -8,6 +8,8 @@ export class Room {
     this.profiles = null;
     this.hp = null;
     this.rounds = null;
+    this.phase = null;
+    this.ready = null;
     this.lastDirectoryAt = 0;
   }
 
@@ -18,6 +20,18 @@ export class Room {
     this.profiles = (await this.state.storage.get("profiles")) || {};
     this.hp = (await this.state.storage.get("hp")) || {};
     this.rounds = (await this.state.storage.get("rounds")) || {};
+    this.phase = (await this.state.storage.get("phase")) || "lobby";
+    this.ready = (await this.state.storage.get("ready")) || {};
+  }
+
+  async _persist() {
+    await this.state.storage.put({
+      profiles: this.profiles,
+      hp: this.hp,
+      rounds: this.rounds,
+      phase: this.phase,
+      ready: this.ready,
+    });
   }
 
   _isPlayer(ws) {
@@ -65,8 +79,25 @@ export class Room {
           server.send(JSON.stringify({ t: "profile", slot, ...profile }));
         }
       }
-      server.send(JSON.stringify({ t: "spectate_state", hp: this.hp, rounds: this.rounds }));
+      server.send(
+        JSON.stringify({
+          t: "spectate_state",
+          hp: this.hp,
+          rounds: this.rounds,
+          phase: this.phase,
+          ready: this.ready,
+        }),
+      );
       return new Response(null, { status: 101, webSocket: client });
+    }
+
+    if (players.length === 0) {
+      this.profiles = {};
+      this.hp = {};
+      this.rounds = {};
+      this.ready = {};
+      this.phase = "lobby";
+      await this._persist();
     }
 
     const taken = players.map((ws) => this._slot(ws));
@@ -123,18 +154,45 @@ export class Room {
         wins: Number(message.wins || 0),
         losses: Number(message.losses || 0),
       };
-      await this.state.storage.put("profiles", this.profiles);
+      await this._persist();
+      await this._updateDirectory(true);
+      return;
+    }
+    if (message.t === "set_ready") {
+      this.ready[slot] = Boolean(message.value);
+      await this._persist();
       await this._updateDirectory(true);
       return;
     }
     if (message.t === "hit_result") {
       this.hp[slot] = Number(message.hp || 0);
-      await this.state.storage.put("hp", this.hp);
+      await this._persist();
+      await this._noteFight();
       return;
     }
     if (message.t === "round_end") {
       this.rounds[slot] = Number(this.rounds[slot] || 0) + 1;
-      await this.state.storage.put("rounds", this.rounds);
+      await this._persist();
+      await this._updateDirectory(true);
+      return;
+    }
+    if (
+      message.t === "input" ||
+      message.t === "act" ||
+      message.t === "hit" ||
+      message.t === "miss" ||
+      message.t === "rematch"
+    ) {
+      await this._noteFight();
+      return;
+    }
+    await this._updateDirectory(false);
+  }
+
+  async _noteFight() {
+    if (this.phase !== "fighting") {
+      this.phase = "fighting";
+      await this._persist();
       await this._updateDirectory(true);
       return;
     }
@@ -160,7 +218,13 @@ export class Room {
       const id = this.env.DIRECTORY.idFromName("directory");
       await this.env.DIRECTORY.get(id).fetch("https://directory/update", {
         method: "POST",
-        body: JSON.stringify({ code: this.code, present: players.length, names, colors }),
+        body: JSON.stringify({
+          code: this.code,
+          present: players.length,
+          names,
+          colors,
+          phase: players.length > 0 ? this.phase : "lobby",
+        }),
       });
     } catch (err) {}
   }
@@ -197,31 +261,37 @@ export class Directory {
     }
   }
 
+  _prune(now) {
+    for (const [code, room] of Object.entries(this.rooms)) {
+      if (now - room.at > STALE_MS || room.present <= 0) {
+        delete this.rooms[code];
+      }
+    }
+  }
+
   async fetch(request) {
     await this._load();
     const url = new URL(request.url);
+    const now = Date.now();
     if (url.pathname === "/update") {
       const data = await request.json();
-      const now = Date.now();
       if (data.present > 0) {
         this.rooms[data.code] = {
           code: data.code,
           present: data.present,
           names: data.names || [],
           colors: data.colors || [],
+          phase: data.phase || "lobby",
           at: now,
         };
       } else {
         delete this.rooms[data.code];
       }
-      for (const [code, room] of Object.entries(this.rooms)) {
-        if (now - room.at > STALE_MS) {
-          delete this.rooms[code];
-        }
-      }
+      this._prune(now);
       await this.state.storage.put("rooms", this.rooms);
       return new Response("ok");
     }
+    this._prune(now);
     return new Response(JSON.stringify(Object.values(this.rooms)), {
       headers: { "content-type": "application/json", "access-control-allow-origin": "*" },
     });

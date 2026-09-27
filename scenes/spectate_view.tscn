@@ -38,3 +38,95 @@ position = Vector2(360, 1560)
 
 [node name="Hud" parent="." instance=ExtResource("3_hud")]
 layout_mode = 1
+
+[node name="Lobby" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Box" type="VBoxContainer" parent="Lobby"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -430.0
+offset_top = -430.0
+offset_right = 430.0
+offset_bottom = 430.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 26
+alignment = 1
+
+[node name="Title" type="Label" parent="Lobby/Box"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "IN LOBBY"
+horizontal_alignment = 1
+
+[node name="Row" type="HBoxContainer" parent="Lobby/Box"]
+layout_mode = 2
+theme_override_constants/separation = 30
+alignment = 1
+
+[node name="LeftColumn" type="VBoxContainer" parent="Lobby/Box/Row"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="LeftChip" type="ColorRect" parent="Lobby/Box/Row/LeftColumn"]
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="LeftName" type="Label" parent="Lobby/Box/Row/LeftColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "PLAYER 1"
+horizontal_alignment = 1
+
+[node name="LeftReady" type="Label" parent="Lobby/Box/Row/LeftColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "NOT READY"
+horizontal_alignment = 1
+
+[node name="Vs" type="Label" parent="Lobby/Box/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 72
+text = "VS"
+
+[node name="RightColumn" type="VBoxContainer" parent="Lobby/Box/Row"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="RightChip" type="ColorRect" parent="Lobby/Box/Row/RightColumn"]
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="RightName" type="Label" parent="Lobby/Box/Row/RightColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "PLAYER 2"
+horizontal_alignment = 1
+
+[node name="RightReady" type="Label" parent="Lobby/Box/Row/RightColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "NOT READY"
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="Lobby/Box"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.72)
+theme_override_font_sizes/font_size = 32
+text = "Waiting for players to ready up"
+horizontal_alignment = 1

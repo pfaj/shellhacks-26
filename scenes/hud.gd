@@ -142,6 +142,11 @@ func set_blocking(local: bool, remote: bool) -> void:
 	_remote_blocking = remote
 
 
+func set_panels_visible(value: bool) -> void:
+	_local_panel.visible = value
+	_remote_panel.visible = value
+
+
 func show_combo(count: int) -> void:
 	if count < 2:
 		hide_combo()
