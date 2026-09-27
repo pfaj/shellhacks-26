@@ -43,8 +43,8 @@ var _shake_time := 0.0
 var _shake_strength := 0.0
 var _hit_stop_active := false
 
-@onready var _local: Node2D = $Fighters/LocalFighter
-@onready var _remote: Node2D = $Fighters/RemoteFighter
+@onready var _local: Fighter = $Fighters/LocalFighter
+@onready var _remote: Fighter = $Fighters/RemoteFighter
 @onready var _hud: Control = $Hud
 @onready var _floor: ColorRect = $Floor
 @onready var _rope_top: ColorRect = $RopeTop
@@ -72,6 +72,10 @@ func _ready() -> void:
 	Net.status_changed.connect(_on_status_changed)
 	_neutral = _raw_gamma()
 	Sfx.play_music("fight")
+	if Net.local_mode:
+		var bot := Bot.new()
+		bot.game = self
+		add_child(bot)
 
 
 func _process(delta: float) -> void:
@@ -175,27 +179,46 @@ func _land_action(kind: String) -> void:
 
 func _on_attack_started(kind: String) -> void:
 	Net.send({"t": Protocol.ACT, "kind": kind})
-	get_tree().create_timer(_impact_delay(kind)).timeout.connect(_resolve_hit.bind(kind))
+	get_tree().create_timer(impact_delay(kind)).timeout.connect(_resolve_hit.bind(kind))
 
 
-func _impact_delay(kind: String) -> float:
+func impact_delay(kind: String) -> float:
 	return 0.05
 
 
 func _resolve_hit(kind: String) -> void:
 	if _match_over:
 		return
-	if _mutual_disengage():
+	if mutual_disengage():
 		Net.send({"t": Protocol.MISS})
 		_hud.show_floating_text(_remote.position + Vector2(0, -700), "MISS", Color(0.75, 0.75, 0.85), 52)
 		return
 	Net.send({"t": Protocol.HIT, "kind": kind})
 
 
-func _mutual_disengage() -> bool:
+func mutual_disengage() -> bool:
 	if absf(_move) <= DODGE_THRESHOLD or absf(_remote_move) <= DODGE_THRESHOLD:
 		return false
 	return signf(_move) == signf(_remote_move)
+
+
+func remote_is_attacking() -> bool:
+	return _remote.state == Fighter.Action.JAB or _remote.state == Fighter.Action.PUNCH
+
+
+func is_match_over() -> bool:
+	return _match_over
+
+
+func bot_defense_result(kind: String) -> Dictionary:
+	var blocked := _remote_blocking
+	var damage := _chip_damage(kind) if blocked else _base_damage(kind)
+	return {
+		"t": Protocol.HIT_RESULT,
+		"blocked": blocked,
+		"damage": damage,
+		"kind": kind,
+	}
 
 
 func _send_input() -> void:
