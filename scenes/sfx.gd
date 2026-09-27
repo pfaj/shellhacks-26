@@ -34,10 +34,20 @@ func _ready() -> void:
 func play(sound: String, pitch_variation := 0.0, pitch := 1.0) -> void:
 	if not _streams.has(sound):
 		return
-	var variants: Array = _streams[sound]
+	_play_stream(_streams[sound].pick_random(), pitch_variation, pitch)
+
+
+func play_all(sound: String, pitch_variation := 0.0, pitch := 1.0) -> void:
+	if not _streams.has(sound):
+		return
+	for stream in _streams[sound]:
+		_play_stream(stream, pitch_variation, pitch)
+
+
+func _play_stream(stream: AudioStream, pitch_variation: float, pitch: float) -> void:
 	var player := _players[_next]
 	_next = (_next + 1) % _players.size()
-	player.stream = variants.pick_random()
+	player.stream = stream
 	player.pitch_scale = pitch + randf_range(-pitch_variation, pitch_variation)
 	player.play()
 

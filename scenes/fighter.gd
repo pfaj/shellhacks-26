@@ -233,7 +233,7 @@ func set_block(value: bool) -> void:
 
 
 func block_hit() -> void:
-	Sfx.play(Protocol.BLOCK, 0.05)
+	Sfx.play_all(Protocol.BLOCK, 0.05)
 
 
 func reset_round() -> void:
