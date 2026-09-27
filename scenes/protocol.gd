@@ -15,6 +15,7 @@ const HIT := "hit"
 const HIT_RESULT := "hit_result"
 const MISS := "miss"
 const REMATCH := "rematch"
+const FORFEIT := "forfeit"
 
 const JAB := "jab"
 const PUNCH := "punch"
