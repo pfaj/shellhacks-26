@@ -50,10 +50,16 @@ text = "PLAY ONLINE"
 layout_mode = 2
 text = "PLAY LOCAL"
 
+[node name="RejoinButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=1234567891]
+visible = false
+layout_mode = 2
+text = "REJOIN"
+
 [node name="TiltTestButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=1863322071]
 layout_mode = 2
 text = "TILT TEST"
 
 [connection signal="pressed" from="MarginContainer/VBoxContainer/PlayButton" to="." method="_on_play_online_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/LocalButton" to="." method="_on_play_local_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/RejoinButton" to="." method="_on_rejoin_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/TiltTestButton" to="." method="_on_tilt_test_button_pressed"]

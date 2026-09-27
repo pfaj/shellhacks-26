@@ -4,6 +4,15 @@ extends Control
 func _ready() -> void:
 	Sfx.play_music("menu")
 	$MarginContainer/VBoxContainer/WinsLabel.text = "LIFETIME  %dW - %dL" % [Net.my_wins, Net.my_losses]
+	var rejoin: Button = $MarginContainer/VBoxContainer/RejoinButton
+	rejoin.visible = not Net.last_room.is_empty() and Net.had_match
+	if rejoin.visible:
+		rejoin.text = "REJOIN  %s" % Net.last_room
+
+
+func _on_rejoin_pressed() -> void:
+	Net.rejoin()
+	get_tree().change_scene_to_file("res://scenes/connect_screen.tscn")
 
 
 func _on_play_online_pressed() -> void:
