@@ -15,6 +15,9 @@ var _local_action_time := 0.0
 var _remote_action_time := 0.0
 var _local_blocking := false
 var _remote_blocking := false
+var _last_local_pips := 0
+var _last_remote_pips := 0
+var _dot: Texture2D
 
 @onready var _local_name: Label = $LocalPanel/LocalName
 @onready var _local_chip: ColorRect = $LocalPanel/LocalChip
@@ -43,6 +46,10 @@ var _remote_blocking := false
 @onready var _time_label: Label = $TimeLabel
 @onready var _combo_label: Label = $ComboLabel
 @onready var _countdown: Label = $Countdown
+@onready var _ko: Label = $KoLabel
+@onready var _local_panel: VBoxContainer = $LocalPanel
+@onready var _remote_panel: VBoxContainer = $RemotePanel
+@onready var _result_box: VBoxContainer = $Result/Box
 @onready var _status: Label = $StatusLabel
 @onready var _result: ColorRect = $Result
 @onready var _result_label: Label = $Result/Box/ResultLabel
@@ -108,6 +115,12 @@ func set_pips(local_rounds: int, remote_rounds: int) -> void:
 		_local_pips[i].color = _local_hp_fill.color if i < local_rounds else Color(1, 1, 1, 0.2)
 	for i in _remote_pips.size():
 		_remote_pips[i].color = _remote_hp_fill.color if i < remote_rounds else Color(1, 1, 1, 0.2)
+	for i in range(_last_local_pips, local_rounds):
+		Ui.pop(_local_pips[i], 1.9)
+	for i in range(_last_remote_pips, remote_rounds):
+		Ui.pop(_remote_pips[i], 1.9)
+	_last_local_pips = local_rounds
+	_last_remote_pips = remote_rounds
 
 
 func set_local_action(text: String) -> void:
@@ -157,13 +170,52 @@ func hide_countdown() -> void:
 	_countdown.visible = false
 
 
+func show_ko() -> void:
+	_ko.visible = true
+	_ko.modulate = Color(1.0, 0.32, 0.28)
+	Ui.pop(_ko, 1.5)
+
+
+func hide_ko() -> void:
+	_ko.visible = false
+
+
+func play_intro() -> void:
+	var local_home := _local_panel.position.x
+	var remote_home := _remote_panel.position.x
+	_slide_in(_local_panel, local_home - 520.0, local_home, 0.0)
+	_slide_in(_remote_panel, remote_home + 520.0, remote_home, 0.0)
+	var time_home := _time_label.position.y
+	_time_label.position.y = time_home - 240.0
+	_time_label.modulate.a = 0.0
+	var tween := _time_label.create_tween().set_parallel(true)
+	tween.tween_property(_time_label, "position:y", time_home, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(_time_label, "modulate:a", 1.0, 0.3)
+
+
+func _slide_in(panel: Control, from_x: float, home_x: float, delay: float) -> void:
+	panel.position.x = from_x
+	panel.modulate.a = 0.0
+	var tween := panel.create_tween().set_parallel(true)
+	tween.tween_property(panel, "position:x", home_x, 0.5).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(panel, "modulate:a", 1.0, 0.3).set_delay(delay)
+
+
 func show_result(title: String, status: String, can_rematch: bool) -> void:
+	_ko.visible = false
 	_result.visible = true
+	_result.modulate.a = 0.0
+	_result.create_tween().tween_property(_result, "modulate:a", 1.0, 0.25)
+	_result_box.pivot_offset = _result_box.size * 0.5
+	_result_box.scale = Vector2(0.88, 0.88)
+	_result_box.create_tween().tween_property(_result_box, "scale", Vector2.ONE, 0.32).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_result_label.text = title
 	_result_status.text = status
 	_rematch_button.visible = can_rematch
 	_rematch_button.disabled = not can_rematch
 	_rematch_button.text = "REMATCH"
+	if can_rematch and title == "YOU WIN":
+		_spawn_confetti()
 
 
 func hide_result() -> void:
@@ -224,6 +276,46 @@ func flash_hit(victim: Node2D) -> void:
 		return
 	victim.modulate = Color(1.7, 1.6, 1.6)
 	create_tween().tween_property(victim, "modulate", Color.WHITE, 0.15)
+
+
+func _spawn_confetti() -> void:
+	var particles := CPUParticles2D.new()
+	particles.texture = _dot_texture()
+	particles.amount = 90
+	particles.lifetime = 2.4
+	particles.one_shot = true
+	particles.explosiveness = 1.0
+	particles.emitting = true
+	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	particles.emission_rect_extents = Vector2(size.x * 0.5, 8.0)
+	particles.position = Vector2(size.x * 0.5, -40.0)
+	particles.direction = Vector2(0, 1)
+	particles.spread = 25.0
+	particles.initial_velocity_min = 250.0
+	particles.initial_velocity_max = 550.0
+	particles.gravity = Vector2(0, 700)
+	particles.angular_velocity_min = -320.0
+	particles.angular_velocity_max = 320.0
+	particles.scale_amount_min = 0.6
+	particles.scale_amount_max = 1.4
+	var ramp := Gradient.new()
+	ramp.set_color(0, Ui.ACCENT)
+	ramp.set_color(1, Ui.WIN)
+	particles.color_ramp = ramp
+	add_child(particles)
+	get_tree().create_timer(3.0).timeout.connect(particles.queue_free)
+
+
+func _dot_texture() -> Texture2D:
+	if _dot == null:
+		var image := Image.create(16, 16, false, Image.FORMAT_RGBA8)
+		image.fill(Color(0, 0, 0, 0))
+		for y in 16:
+			for x in 16:
+				if Vector2(x, y).distance_to(Vector2(7.5, 7.5)) <= 7.5:
+					image.set_pixel(x, y, Color.WHITE)
+		_dot = ImageTexture.create_from_image(image)
+	return _dot
 
 
 func _update_hp(local: bool, hp: int) -> void:

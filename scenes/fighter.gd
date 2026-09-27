@@ -98,6 +98,8 @@ const JAB_CHAIN_COOLDOWN := 0.9
 const JAB_TIME := 0.2
 const PUNCH_TIME := 0.55
 const HURT_TIME := 0.35
+const BREATH_AMPLITUDE := 0.012
+const BREATH_SPEED := 2.4
 
 enum Action { IDLE, JAB, PUNCH, BLOCK, HURT, KO }
 
@@ -118,6 +120,8 @@ var _poses := {}
 var _align := {}
 var _draw_width := 0.0
 var _draw_height := 0.0
+var _base_scale := 1.0
+var _breath := 1.0
 var _artboard_pixel_height := ARTBOARD_HEIGHT
 var _idle_frame := 0
 var _idle_timer := 0.0
@@ -146,6 +150,7 @@ func _process(delta: float) -> void:
 		if _state_timer == 0.0:
 			_finish_action()
 	_update_idle(delta)
+	_update_breath(delta)
 	_refresh_pose()
 
 
@@ -164,8 +169,7 @@ func setup(color: Color, is_local: bool) -> void:
 	var content_height := LOCAL_CONTENT_HEIGHT if is_local else PEER_CONTENT_HEIGHT
 	_draw_height = bot_height / content_height
 	_draw_width = _draw_height * ARTBOARD_RATIO
-	var factor := _draw_height / _artboard_pixel_height
-	_sprite.scale = Vector2(factor, factor)
+	_base_scale = _draw_height / _artboard_pixel_height
 	state = Action.IDLE
 	_cooldown = 0.0
 	_chain_timer = 0.0
@@ -188,8 +192,7 @@ func place(new_position: Vector2) -> void:
 func set_art_height(height: float) -> void:
 	_draw_height = height
 	_draw_width = _draw_height * ARTBOARD_RATIO
-	var factor := _draw_height / _artboard_pixel_height
-	_sprite.scale = Vector2(factor, factor)
+	_base_scale = _draw_height / _artboard_pixel_height
 	_refresh_pose()
 
 
@@ -354,8 +357,18 @@ func _refresh_pose() -> void:
 	if texture != null and _sprite.texture != texture:
 		_sprite.texture = texture
 	var alignment: Vector2 = _align.get(key, _neutral_align(key))
-	var offset_x := -(1.0 - alignment.x) * _draw_width if FLIP else -alignment.x * _draw_width
-	_sprite.position = Vector2(offset_x, -alignment.y * _draw_height)
+	var width := _draw_width * _breath
+	var height := _draw_height * _breath
+	var offset_x := -(1.0 - alignment.x) * width if FLIP else -alignment.x * width
+	_sprite.position = Vector2(offset_x, -alignment.y * height)
+	_sprite.scale = Vector2.ONE * _base_scale * _breath
+
+
+func _update_breath(delta: float) -> void:
+	var target := 1.0
+	if state == Action.IDLE:
+		target = 1.0 + sin(Time.get_ticks_msec() * 0.001 * BREATH_SPEED) * BREATH_AMPLITUDE
+	_breath = lerpf(_breath, target, clampf(delta * 8.0, 0.0, 1.0))
 
 
 func _neutral_align(key: String) -> Vector2:

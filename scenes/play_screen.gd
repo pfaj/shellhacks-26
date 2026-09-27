@@ -55,6 +55,7 @@ var _background_wide := false
 var _intro := false
 var _intro_step := 0
 var _intro_timer := 0.0
+var _first_round := true
 
 @onready var _local: Fighter = $Fighters/LocalFighter
 @onready var _remote: Fighter = $Fighters/RemoteFighter
@@ -94,6 +95,7 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
+	Engine.time_scale = 1.0
 	Sfx.stop_sfx()
 
 
@@ -326,6 +328,7 @@ func _apply_local_damage(damage: int, blocked: bool, kind: String) -> void:
 	else:
 		_hit_stop()
 		_shake()
+		Fx.flash(0.18 if kind == Protocol.PUNCH else 0.08)
 		_local_combo = 0
 		_combo_timer = 0.0
 		_hud.hide_combo()
@@ -333,6 +336,7 @@ func _apply_local_damage(damage: int, blocked: bool, kind: String) -> void:
 		_hud.set_local_action("HURT")
 	if _local_hp <= 0:
 		_local.play_action(Protocol.KO)
+		_ko_moment()
 		_finish_match(Result.LOSE)
 
 
@@ -347,11 +351,13 @@ func _apply_remote_damage(damage: int, blocked: bool, kind: String) -> void:
 	else:
 		_hit_stop()
 		_shake()
+		Fx.flash(0.18 if kind == Protocol.PUNCH else 0.08)
 		_register_combo()
 		_remote.play_hurt(kind)
 		_hud.set_remote_action("HURT")
 	if _remote_hp <= 0:
 		_remote.play_action(Protocol.KO)
+		_ko_moment()
 		_finish_match(Result.WIN)
 
 
@@ -442,7 +448,11 @@ func _start_round() -> void:
 	_remote_blocking = false
 	_hud.hide_combo()
 	_hud.hide_result()
+	_hud.hide_ko()
 	_hud.set_status("")
+	if _first_round:
+		_hud.play_intro()
+		_first_round = false
 	_hud.set_timer(ROUND_TIME)
 	_hud.set_pips(Net.local_rounds, Net.remote_rounds)
 	_local.reset_round()
@@ -519,6 +529,17 @@ func _on_exit_pressed() -> void:
 func _shake() -> void:
 	_shake_time = SHAKE_TIME
 	_shake_strength = SHAKE_STRENGTH
+
+
+func _ko_moment() -> void:
+	_hud.show_ko()
+	Fx.flash(0.35)
+	await get_tree().create_timer(0.12, true, false, true).timeout
+	if not is_inside_tree():
+		return
+	Engine.time_scale = 0.4
+	await get_tree().create_timer(0.5, true, false, true).timeout
+	Engine.time_scale = 1.0
 
 
 func _update_shake(delta: float) -> void:
