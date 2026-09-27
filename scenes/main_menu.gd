@@ -1,7 +1,5 @@
 extends Control
 
-const ACCENT := Color("2f81f7")
-
 @onready var _logo: Head = $Margin/VBox/Logo
 @onready var _banner: Button = $Margin/VBox/RejoinBanner
 @onready var _dot: Panel = $Margin/VBox/IdentityRow/ColorDot
@@ -13,7 +11,7 @@ const ACCENT := Color("2f81f7")
 
 func _ready() -> void:
 	Sfx.play_music("menu")
-	_logo.apply_color(ACCENT)
+	_logo.apply_color(Ui.ACCENT)
 	_style_dot(Net.my_color)
 	_name.text = Net.my_name
 	_wins.text = "%dW" % Net.my_wins
@@ -21,8 +19,8 @@ func _ready() -> void:
 	_banner.visible = not Net.last_room.is_empty() and Net.had_match
 	if _banner.visible:
 		_banner.text = "REJOIN  %s" % Net.last_room
-	_style_button(_play, ACCENT, Color(0, 0, 0, 0))
-	_style_button(_banner, Color(0, 0, 0, 0), ACCENT)
+	Ui.style_button(_play, Ui.ACCENT)
+	Ui.style_button(_banner, Color(0, 0, 0, 0), Ui.ACCENT)
 
 
 func _on_rejoin_pressed() -> void:
@@ -52,27 +50,6 @@ func _style_dot(color: Color) -> void:
 	style.bg_color = color
 	style.set_corner_radius_all(22)
 	_dot.add_theme_stylebox_override("panel", style)
-
-
-func _style_button(button: Button, bg: Color, border: Color) -> void:
-	button.add_theme_stylebox_override("normal", _flat(bg, border))
-	button.add_theme_stylebox_override("hover", _flat(bg.lightened(0.12), border))
-	button.add_theme_stylebox_override("pressed", _flat(bg.darkened(0.2), border))
-	button.add_theme_stylebox_override("focus", _flat(bg, border))
-
-
-func _flat(bg: Color, border: Color) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = bg
-	style.set_corner_radius_all(18)
-	style.content_margin_left = 48.0
-	style.content_margin_right = 48.0
-	style.content_margin_top = 16.0
-	style.content_margin_bottom = 16.0
-	if border.a > 0.0:
-		style.set_border_width_all(4)
-		style.border_color = border
-	return style
 
 
 func _bot_color() -> Color:

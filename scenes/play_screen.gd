@@ -25,6 +25,9 @@ const HIT_STOP_TIME := 0.07
 const HIT_STOP_SCALE := 0.05
 const BG_VERTICAL := "res://assets/branding/Shellhacks Background_BG Vertical.svg"
 const BG_HORIZONTAL := "res://assets/branding/Shellhacks Background_BG Horizontal.svg"
+const COUNTDOWN_STEPS: Array[String] = ["3", "2", "1", "FIGHT!"]
+const COUNTDOWN_STEP_TIME := 0.8
+const COUNTDOWN_FIGHT_TIME := 0.9
 
 enum Result { WIN, LOSE, DRAW }
 
@@ -49,6 +52,9 @@ var _shake_strength := 0.0
 var _hit_stop_active := false
 var _leaving := false
 var _background_wide := false
+var _intro := false
+var _intro_step := 0
+var _intro_timer := 0.0
 
 @onready var _local: Fighter = $Fighters/LocalFighter
 @onready var _remote: Fighter = $Fighters/RemoteFighter
@@ -76,7 +82,7 @@ func _ready() -> void:
 	Net.peer_left.connect(_on_peer_left)
 	Net.peer_forfeit.connect(_on_peer_forfeit)
 	Net.room_ready.connect(_on_room_ready)
-	Net.joined.connect(_on_rejoined)
+	Net.peer_ready_changed.connect(_on_peer_ready_changed)
 	Net.status_changed.connect(_on_status_changed)
 	_neutral = _raw_gamma()
 	Sfx.play_music("fight")
@@ -84,6 +90,7 @@ func _ready() -> void:
 		var bot := Bot.new()
 		bot.game = self
 		add_child(bot)
+	_start_round()
 
 
 func _exit_tree() -> void:
@@ -94,6 +101,13 @@ func _process(delta: float) -> void:
 	_update_shake(delta)
 	_hud.set_bars(_local_hp, _remote_hp, _move, _remote_move)
 	_hud.set_blocking(_controls.blocking, _remote_blocking)
+	if _intro:
+		_intro_timer -= delta
+		_local.set_move(0.0, delta)
+		_remote.set_move(0.0, delta)
+		if _intro_timer <= 0.0:
+			_advance_intro()
+		return
 	if _match_over:
 		return
 	_update_tilt(delta)
@@ -109,7 +123,7 @@ func _process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if _match_over:
+	if not is_round_live():
 		return
 	_controls.handle_event(event, size.x * 0.5)
 
@@ -186,7 +200,7 @@ func _on_block_changed(blocking: bool) -> void:
 
 
 func _land_action(kind: String) -> void:
-	if _match_over:
+	if not is_round_live():
 		return
 	_local.play_action(kind)
 
@@ -201,7 +215,7 @@ func impact_delay(kind: String) -> float:
 
 
 func _resolve_hit(kind: String) -> void:
-	if _match_over:
+	if not is_round_live():
 		return
 	if mutual_disengage():
 		Net.send({"t": Protocol.MISS})
@@ -222,6 +236,10 @@ func remote_is_attacking() -> bool:
 
 func is_match_over() -> bool:
 	return _match_over
+
+
+func is_round_live() -> bool:
+	return not _intro and not _match_over
 
 
 func bot_defense_result(kind: String) -> Dictionary:
@@ -265,7 +283,7 @@ func _on_peer_message(message: Dictionary) -> void:
 
 
 func _resolve_incoming_hit(kind: String) -> void:
-	if _match_over:
+	if not is_round_live():
 		return
 	if _controls.blocking:
 		var chip := _chip_damage(kind)
@@ -377,7 +395,7 @@ func _finish_match(result: Result) -> void:
 	_hud.show_result(_round_text(result), _match_status(), false)
 	await get_tree().create_timer(ROUND_BREAK).timeout
 	if is_inside_tree():
-		get_tree().change_scene_to_file("res://scenes/prematch_screen.tscn")
+		_start_round()
 
 
 func _match_status() -> String:
@@ -407,7 +425,45 @@ func _check_rematch() -> void:
 	if _local_rematch and _remote_rematch:
 		Net.local_rounds = 0
 		Net.remote_rounds = 0
-		get_tree().change_scene_to_file("res://scenes/prematch_screen.tscn")
+		_start_round()
+
+
+func _start_round() -> void:
+	_match_over = false
+	_local_rematch = false
+	_remote_rematch = false
+	_local_hp = MAX_HP
+	_remote_hp = MAX_HP
+	_round_time = ROUND_TIME
+	_local_combo = 0
+	_combo_timer = 0.0
+	_move = 0.0
+	_remote_move = 0.0
+	_remote_blocking = false
+	_hud.hide_combo()
+	_hud.hide_result()
+	_hud.set_status("")
+	_hud.set_timer(ROUND_TIME)
+	_hud.set_pips(Net.local_rounds, Net.remote_rounds)
+	_local.reset_round()
+	_remote.reset_round()
+	_controls.reset()
+	_intro = true
+	_intro_step = -1
+	_intro_timer = 0.0
+	_advance_intro()
+
+
+func _advance_intro() -> void:
+	_intro_step += 1
+	if _intro_step >= COUNTDOWN_STEPS.size():
+		_intro = false
+		_hud.hide_countdown()
+		return
+	if _intro_step == 0:
+		Sfx.play("countdown")
+	_hud.set_countdown(COUNTDOWN_STEPS[_intro_step])
+	_intro_timer = COUNTDOWN_FIGHT_TIME if _intro_step == COUNTDOWN_STEPS.size() - 1 else COUNTDOWN_STEP_TIME
 
 
 func _on_peer_left() -> void:
@@ -431,11 +487,13 @@ func _on_peer_forfeit() -> void:
 
 
 func _on_room_ready() -> void:
-	_return_to_lobby()
+	if not _leaving and not Net.local_mode:
+		_hud.set_status("Opponent reconnected")
 
 
-func _on_rejoined() -> void:
-	_return_to_lobby()
+func _on_peer_ready_changed(value: bool) -> void:
+	if value:
+		_return_to_lobby()
 
 
 func _return_to_lobby() -> void:

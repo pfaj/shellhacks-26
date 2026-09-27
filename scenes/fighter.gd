@@ -231,6 +231,24 @@ func block_hit() -> void:
 	Sfx.play(Protocol.BLOCK, 0.05)
 
 
+func reset_round() -> void:
+	state = Action.IDLE
+	_move = 0.0
+	_block_held = false
+	_cooldown = 0.0
+	_chain_timer = 0.0
+	_jab_count = 0
+	_buffered = ""
+	_buffer_timer = 0.0
+	_pending_kind = ""
+	_reprime_timer = 0.0
+	_state_timer = 0.0
+	_idle_frame = 0
+	_idle_timer = 0.0
+	_hurt_key = "hurt_r"
+	_refresh_pose()
+
+
 func _request(action: Action) -> bool:
 	match action:
 		Action.HURT:

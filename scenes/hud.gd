@@ -42,6 +42,7 @@ var _remote_blocking := false
 ]
 @onready var _time_label: Label = $TimeLabel
 @onready var _combo_label: Label = $ComboLabel
+@onready var _countdown: Label = $Countdown
 @onready var _status: Label = $StatusLabel
 @onready var _result: ColorRect = $Result
 @onready var _result_label: Label = $Result/Box/ResultLabel
@@ -138,6 +139,19 @@ func hide_combo() -> void:
 
 func set_status(text: String) -> void:
 	_status.text = text
+
+
+func set_countdown(text: String) -> void:
+	_countdown.visible = true
+	_countdown.text = text
+	_countdown.modulate = Ui.ACCENT if text == "FIGHT!" else Color.WHITE
+	_countdown.pivot_offset = _countdown.size * 0.5 if _countdown.size.x > 0.0 else Vector2(420, 260)
+	_countdown.scale = Vector2(1.3, 1.3)
+	create_tween().tween_property(_countdown, "scale", Vector2.ONE, 0.16).set_ease(Tween.EASE_OUT)
+
+
+func hide_countdown() -> void:
+	_countdown.visible = false
 
 
 func show_result(title: String, status: String, can_rematch: bool) -> void:
