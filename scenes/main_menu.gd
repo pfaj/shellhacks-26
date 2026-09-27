@@ -25,12 +25,12 @@ func _ready() -> void:
 
 func _on_rejoin_pressed() -> void:
 	Net.rejoin()
-	get_tree().change_scene_to_file("res://scenes/connect_screen.tscn")
+	Fx.goto("res://scenes/connect_screen.tscn")
 
 
 func _on_play_online_pressed() -> void:
 	Net.local_mode = false
-	get_tree().change_scene_to_file("res://scenes/connect_screen.tscn")
+	Fx.goto("res://scenes/connect_screen.tscn")
 
 
 func _on_practice_pressed() -> void:
@@ -42,7 +42,7 @@ func _on_practice_pressed() -> void:
 	Net.peer_wins = 0
 	Net.peer_losses = 0
 	Net.peer_color = _bot_color()
-	get_tree().change_scene_to_file("res://scenes/play_screen.tscn")
+	Fx.goto("res://scenes/play_screen.tscn")
 
 
 func _style_dot(color: Color) -> void:

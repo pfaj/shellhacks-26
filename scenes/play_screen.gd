@@ -502,7 +502,7 @@ func _return_to_lobby() -> void:
 	_leaving = true
 	Net.local_rounds = 0
 	Net.remote_rounds = 0
-	get_tree().change_scene_to_file("res://scenes/lobby_screen.tscn")
+	Fx.goto("res://scenes/lobby_screen.tscn")
 
 
 func _on_status_changed(text: String) -> void:
@@ -513,7 +513,7 @@ func _on_status_changed(text: String) -> void:
 func _on_exit_pressed() -> void:
 	Sfx.stop_music()
 	Net.leave(not _match_over)
-	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+	Fx.goto("res://scenes/main_menu.tscn")
 
 
 func _shake() -> void:

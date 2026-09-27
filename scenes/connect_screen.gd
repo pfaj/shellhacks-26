@@ -40,7 +40,7 @@ func _on_join_pressed() -> void:
 
 
 func _on_joined() -> void:
-	get_tree().change_scene_to_file("res://scenes/lobby_screen.tscn")
+	Fx.goto("res://scenes/lobby_screen.tscn")
 
 
 func _on_status_changed(text: String) -> void:
@@ -60,7 +60,7 @@ func _on_code_changed(new_text: String) -> void:
 
 func _on_back_pressed() -> void:
 	Net.leave()
-	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+	Fx.goto("res://scenes/main_menu.tscn")
 
 
 func _room_from_url() -> String:

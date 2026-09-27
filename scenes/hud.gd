@@ -56,6 +56,9 @@ func _ready() -> void:
 	_rematch_button.pressed.connect(_on_rematch_pressed)
 	_result_exit_button.pressed.connect(_on_exit_pressed)
 	_exit_button.pressed.connect(_on_exit_pressed)
+	Ui.press_pop(_rematch_button)
+	Ui.press_pop(_result_exit_button)
+	Ui.press_pop(_exit_button)
 
 
 func _process(delta: float) -> void:

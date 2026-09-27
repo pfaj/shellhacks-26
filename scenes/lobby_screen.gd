@@ -122,7 +122,7 @@ func _refresh_peer_ready(value: bool) -> void:
 
 func _check_both_ready() -> void:
 	if Net.my_ready and Net.peer_ready:
-		get_tree().change_scene_to_file("res://scenes/play_screen.tscn")
+		Fx.goto("res://scenes/play_screen.tscn")
 
 
 func _on_peer_left() -> void:
@@ -136,7 +136,7 @@ func _on_status_changed(text: String) -> void:
 
 func _on_back_pressed() -> void:
 	Net.leave()
-	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+	Fx.goto("res://scenes/main_menu.tscn")
 
 
 func _build_swatches() -> void:
@@ -145,6 +145,7 @@ func _build_swatches() -> void:
 		button.custom_minimum_size = Vector2(110, 110)
 		button.focus_mode = Control.FOCUS_NONE
 		button.pressed.connect(_on_swatch_pressed.bind(i))
+		Ui.press_pop(button)
 		var head := Head.new()
 		head.set_anchors_preset(Control.PRESET_FULL_RECT)
 		head.offset_left = 10.0

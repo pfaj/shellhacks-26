@@ -21,6 +21,7 @@ config/icon="res://icon.svg"
 
 Net="*res://scenes/net.gd"
 Sfx="*res://scenes/sfx.gd"
+Fx="*res://scenes/fx.gd"
 
 [display]
 
