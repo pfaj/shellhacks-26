@@ -144,6 +144,7 @@ func setup(color: Color, is_local: bool) -> void:
 	material.shader = OVERLAY_SHADER
 	material.set_shader_parameter("tint", color)
 	_sprite.material = material
+	_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	_sprite.centered = false
 	_sprite.flip_h = FLIP
 	var bot_height := LOCAL_BOT_HEIGHT if is_local else PEER_BOT_HEIGHT
