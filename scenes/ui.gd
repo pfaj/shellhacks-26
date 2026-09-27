@@ -39,6 +39,8 @@ static func press_pop(button: Button) -> void:
 
 
 static func _press_pop(button: Button, value: float) -> void:
+	if value < 1.0:
+		Sfx.click()
 	button.pivot_offset = button.size * 0.5
 	button.create_tween().tween_property(button, "scale", Vector2(value, value), 0.08).set_ease(Tween.EASE_OUT)
 

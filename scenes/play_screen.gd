@@ -23,6 +23,19 @@ const HIT_STOP_SCALE := 0.05
 const COUNTDOWN_STEPS: Array[String] = ["3", "2", "1", "FIGHT!"]
 const COUNTDOWN_STEP_TIME := 0.8
 const COUNTDOWN_FIGHT_TIME := 0.9
+const CALIBRATION_TIME := 1.0
+const TILT_DRIFT_MAX := 6.0
+const TILT_DRIFT_RATE := 0.35
+const COMBO_PITCH_STEP := 0.06
+const COMBO_PITCH_MAX := 1.45
+const PUNCH_ZOOM := 1.03
+const KO_ZOOM := 1.14
+const KO_ZOOM_TIME := 0.45
+const SHAKE_ROTATION := 0.012
+const HINT_TILT := "TILT YOUR PHONE TO DODGE"
+const HINT_ACTIONS := "TAP = JAB      HOLD = PUNCH      BOTH FINGERS = BLOCK"
+const HINT_TILT_TIME := 6.0
+const HINT_ACTIONS_TIME := 9.0
 
 enum Result { WIN, LOSE, DRAW }
 
@@ -53,14 +66,27 @@ var _intro_timer := 0.0
 var _first_round := true
 var _vs: VsScreen
 var _vs_active := false
+var _calibration_left := 0.0
+var _calibration_sum := 0.0
+var _calibration_count := 0
+var _calibrated := false
+var _hinted := false
+var _hint_stage := 0
+var _hint_timer := 0.0
+var _jab_used := false
+var _punch_used := false
+var _block_used := false
+var _zoom_tween: Tween
 
 @onready var _local: Fighter = $Fighters/LocalFighter
 @onready var _remote: Fighter = $Fighters/RemoteFighter
+@onready var _fighters: Node2D = $Fighters
 @onready var _hud: Control = $Hud
 @onready var _background: TextureRect = $Background
 
 
 func _ready() -> void:
+	Settings.ensure()
 	if OS.has_feature("web"):
 		_tilt = JavaScriptBridge.get_interface("sockemTilt")
 	_local.setup(Net.my_color, true)
@@ -84,6 +110,7 @@ func _ready() -> void:
 	Net.status_changed.connect(_on_status_changed)
 	_neutral = _raw_gamma()
 	Sfx.play_music("fight")
+	Sfx.play_ambience("crowd", -20.0)
 	if Net.local_mode:
 		var bot := Bot.new()
 		bot.game = self
@@ -97,6 +124,7 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0
 	Sfx.stop_sfx()
+	Sfx.stop_ambience(0.4)
 
 
 func _process(delta: float) -> void:
@@ -104,6 +132,7 @@ func _process(delta: float) -> void:
 	_hud.set_bars(_local_hp, _remote_hp, _move, _remote_move)
 	_hud.set_blocking(_controls.blocking, _remote_blocking)
 	if _intro:
+		_update_calibration(delta)
 		_intro_timer -= delta
 		_local.set_move(0.0, delta)
 		_remote.set_move(0.0, delta)
@@ -118,6 +147,7 @@ func _process(delta: float) -> void:
 	_remote.set_move(_remote_move, delta)
 	_update_round_timer(delta)
 	_update_combo(delta)
+	_update_hints(delta)
 	_net_accumulator += delta
 	if _net_accumulator >= NET_INTERVAL:
 		_net_accumulator = 0.0
@@ -138,13 +168,29 @@ func _layout_stage() -> void:
 	Arena.layout(size, _local, _remote)
 
 
+func _update_calibration(delta: float) -> void:
+	if _calibration_left <= 0.0:
+		return
+	var raw := _raw_gamma()
+	_calibration_sum += raw
+	_calibration_count += 1
+	_calibration_left = maxf(_calibration_left - delta, 0.0)
+	if _calibration_left == 0.0 and _calibration_count > 0:
+		_neutral = _calibration_sum / float(_calibration_count)
+		_smoothed_gamma = _neutral
+		_calibrated = true
+
+
 func _update_tilt(delta: float) -> void:
 	var keyboard := FighterInput.keyboard_lean()
 	if keyboard != 0.0:
 		_move = keyboard
 		return
-	_smoothed_gamma = lerpf(_smoothed_gamma, _raw_gamma(), clampf(delta * TILT_SMOOTHING, 0.0, 1.0))
-	var value := _smoothed_gamma - _neutral
+	var raw := _raw_gamma()
+	_smoothed_gamma = lerpf(_smoothed_gamma, raw, clampf(delta * TILT_SMOOTHING, 0.0, 1.0))
+	if _calibrated and absf(raw - _neutral) < TILT_DRIFT_MAX:
+		_neutral = lerpf(_neutral, raw, clampf(delta * TILT_DRIFT_RATE, 0.0, 1.0))
+	var value := (_smoothed_gamma - _neutral) * Settings.tilt_sensitivity
 	if value > TILT_ENTER_DEGREES:
 		_move = 1.0
 	elif value < -TILT_ENTER_DEGREES:
@@ -170,6 +216,7 @@ func _update_combo(delta: float) -> void:
 	if _combo_timer <= 0.0:
 		return
 	_combo_timer = maxf(_combo_timer - delta, 0.0)
+	_hud.set_combo_ratio(_combo_timer / COMBO_WINDOW)
 	if _combo_timer == 0.0:
 		_local_combo = 0
 		_hud.hide_combo()
@@ -178,10 +225,36 @@ func _update_combo(delta: float) -> void:
 func _register_combo() -> void:
 	_local_combo += 1
 	_combo_timer = COMBO_WINDOW
-	_hud.show_combo(_local_combo)
+	_hud.show_combo(_local_combo, combo_multiplier(_local_combo))
+
+
+func _update_hints(delta: float) -> void:
+	if _hint_stage == 0:
+		return
+	_hint_timer = maxf(_hint_timer - delta, 0.0)
+	if _hint_stage == 1 and (absf(_move) > DODGE_THRESHOLD or _hint_timer == 0.0):
+		_hint_stage = 2
+		_hint_timer = HINT_ACTIONS_TIME
+		_hud.show_hint(HINT_ACTIONS)
+	elif _hint_stage == 2 and (_hint_timer == 0.0 or (_jab_used and _punch_used and _block_used)):
+		_hint_stage = 0
+		_hud.hide_hint()
+
+
+func _begin_hints() -> void:
+	if _hinted:
+		return
+	_hinted = true
+	_hint_stage = 1
+	_hint_timer = HINT_TILT_TIME
+	_hud.show_hint(HINT_TILT)
 
 
 func _on_tapped(side: int) -> void:
+	if side == FighterInput.Side.LEFT:
+		_jab_used = true
+	else:
+		_punch_used = true
 	_land_action(Protocol.JAB if side == FighterInput.Side.LEFT else Protocol.PUNCH)
 
 
@@ -190,6 +263,8 @@ func _on_held(side: int) -> void:
 
 
 func _on_block_changed(blocking: bool) -> void:
+	if blocking:
+		_block_used = true
 	_local.set_block(blocking)
 	_send_input()
 
@@ -290,7 +365,7 @@ func _resolve_incoming_hit(kind: String, combo: int) -> void:
 			"hp": maxi(_local_hp - chip, 0),
 			"kind": kind,
 		})
-		_apply_local_damage(chip, true, kind)
+		_apply_local_damage(chip, true, kind, combo)
 		return
 	var damage := _scaled_damage(_base_damage(kind), combo)
 	Net.send({
@@ -300,7 +375,7 @@ func _resolve_incoming_hit(kind: String, combo: int) -> void:
 		"hp": maxi(_local_hp - damage, 0),
 		"kind": kind,
 	})
-	_apply_local_damage(damage, false, kind)
+	_apply_local_damage(damage, false, kind, combo)
 
 
 func _apply_hit_result(message: Dictionary) -> void:
@@ -311,26 +386,32 @@ func _apply_hit_result(message: Dictionary) -> void:
 	)
 
 
-func _apply_local_damage(damage: int, blocked: bool, kind: String) -> void:
+func _apply_local_damage(damage: int, blocked: bool, kind: String, combo := 0) -> void:
 	if damage <= 0:
 		return
 	_local_hp = maxi(_local_hp - damage, 0)
 	_hud.show_damage(_local, damage, blocked, true)
 	_hud.flash_hit(_local)
+	_hud.show_impact(_local, kind == Protocol.PUNCH and not blocked, blocked)
 	if blocked:
+		_local.knockback(0.35)
 		_local.block_hit()
 	else:
 		_hit_stop()
 		_shake()
+		_local.knockback(1.0)
+		Sfx.swell_ambience(-8.0, 0.08, 0.9)
+		if kind == Protocol.PUNCH:
+			Fx.vignette(0.4, 0.35)
 		Fx.flash(0.18 if kind == Protocol.PUNCH else 0.08)
 		_local_combo = 0
 		_combo_timer = 0.0
 		_hud.hide_combo()
-		_local.play_hurt(kind)
+		_local.play_hurt(kind, _combo_pitch(combo))
 		_hud.set_local_action("HURT")
 	if _local_hp <= 0:
 		_local.play_action(Protocol.KO)
-		_ko_moment()
+		_ko_moment(_local)
 		_finish_match(Result.LOSE)
 
 
@@ -340,19 +421,31 @@ func _apply_remote_damage(damage: int, blocked: bool, kind: String) -> void:
 	_remote_hp = maxi(_remote_hp - damage, 0)
 	_hud.show_damage(_remote, damage, blocked, false)
 	_hud.flash_hit(_remote)
+	_hud.show_impact(_remote, kind == Protocol.PUNCH and not blocked, blocked)
 	if blocked:
+		_remote.knockback(-0.35)
 		_remote.block_hit()
 	else:
 		_hit_stop()
 		_shake()
+		_remote.knockback(-1.0)
+		Sfx.swell_ambience(-8.0, 0.08, 0.9)
+		if kind == Protocol.PUNCH:
+			Fx.vignette(0.4, 0.35)
 		Fx.flash(0.18 if kind == Protocol.PUNCH else 0.08)
 		_register_combo()
-		_remote.play_hurt(kind)
+		_remote.play_hurt(kind, _combo_pitch(_local_combo))
 		_hud.set_remote_action("HURT")
+		if _remote_hp > 0:
+			_punch_zoom()
 	if _remote_hp <= 0:
 		_remote.play_action(Protocol.KO)
-		_ko_moment()
+		_ko_moment(_remote)
 		_finish_match(Result.WIN)
+
+
+func _combo_pitch(combo: int) -> float:
+	return clampf(1.0 + COMBO_PITCH_STEP * maxi(combo, 0), 1.0, COMBO_PITCH_MAX)
 
 
 func _base_damage(kind: String) -> int:
@@ -377,6 +470,8 @@ func _finish_match(result: Result) -> void:
 	_match_over = true
 	_controls.reset()
 	_hud.hide_combo()
+	_hud.hide_hint()
+	_hint_stage = 0
 	_local_combo = 0
 	_combo_timer = 0.0
 	match result:
@@ -400,8 +495,12 @@ func _finish_match(result: Result) -> void:
 			Net.add_loss()
 		_hud.show_result("YOU WIN" if won_match else "YOU LOSE", _match_status(), true)
 		Sfx.play("win" if won_match else "lose")
+		Sfx.play("crowd_roar")
+		Sfx.swell_ambience(-2.0, 0.2, 2.4)
 		return
 	_hud.show_result(_round_text(result), _match_status(), false)
+	Sfx.play("roundstart")
+	Sfx.swell_ambience(-10.0, 0.1, 1.2)
 	await get_tree().create_timer(ROUND_BREAK).timeout
 	if is_inside_tree():
 		_start_round()
@@ -458,11 +557,15 @@ func _start_round() -> void:
 	_local.reset_round()
 	_remote.reset_round()
 	_controls.reset()
+	_stage_reset()
 	_intro = true
 	_intro_step = -1
 	_intro_timer = 0.0
 	if _first_round:
 		_first_round = false
+		_calibration_left = CALIBRATION_TIME
+		_calibration_sum = 0.0
+		_calibration_count = 0
 		_run_vs_intro()
 	else:
 		_advance_intro()
@@ -482,9 +585,13 @@ func _advance_intro() -> void:
 	if _intro_step >= COUNTDOWN_STEPS.size():
 		_intro = false
 		_hud.hide_countdown()
+		_begin_hints()
 		return
 	if _intro_step == 0:
 		Sfx.play("countdown")
+	elif _intro_step == COUNTDOWN_STEPS.size() - 1:
+		Sfx.play("roundstart")
+		Sfx.swell_ambience(-6.0, 0.05, 1.2)
 	_hud.set_countdown(COUNTDOWN_STEPS[_intro_step])
 	_intro_timer = COUNTDOWN_FIGHT_TIME if _intro_step == COUNTDOWN_STEPS.size() - 1 else COUNTDOWN_STEP_TIME
 
@@ -503,6 +610,8 @@ func _on_peer_forfeit() -> void:
 	_match_over = true
 	_controls.reset()
 	_hud.hide_combo()
+	_hud.hide_hint()
+	_hint_stage = 0
 	Net.add_win()
 	_remote.play_action(Protocol.KO)
 	_hud.show_result("YOU WIN", "Opponent forfeited", false)
@@ -544,9 +653,14 @@ func _shake() -> void:
 	_shake_strength = SHAKE_STRENGTH
 
 
-func _ko_moment() -> void:
+func _ko_moment(victim: Node2D) -> void:
 	_hud.show_ko()
+	_hud.show_impact(victim, true)
 	Fx.flash(0.35)
+	Fx.vignette(0.6, 1.2)
+	_zoom_stage(victim.position, KO_ZOOM, KO_ZOOM_TIME)
+	Sfx.play("crowd_roar")
+	Sfx.swell_ambience(-2.0, 0.25, 2.6)
 	await get_tree().create_timer(0.12, true, false, true).timeout
 	if not is_inside_tree():
 		return
@@ -555,15 +669,43 @@ func _ko_moment() -> void:
 	Engine.time_scale = 1.0
 
 
+func _punch_zoom() -> void:
+	_kill_zoom_tween()
+	_zoom_tween = create_tween()
+	_zoom_tween.tween_property(_fighters, "scale", Vector2.ONE * PUNCH_ZOOM, 0.06)
+	_zoom_tween.tween_property(_fighters, "scale", Vector2.ONE, 0.16)
+
+
+func _zoom_stage(focus: Vector2, zoom: float, time: float) -> void:
+	_kill_zoom_tween()
+	_zoom_tween = create_tween().set_parallel(true)
+	_zoom_tween.tween_property(_fighters, "scale", Vector2.ONE * zoom, time).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_zoom_tween.tween_property(_fighters, "position", focus * (1.0 - zoom), time).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+
+func _stage_reset() -> void:
+	_kill_zoom_tween()
+	_fighters.scale = Vector2.ONE
+	_fighters.position = Vector2.ZERO
+	_fighters.rotation = 0.0
+
+
+func _kill_zoom_tween() -> void:
+	if _zoom_tween != null and _zoom_tween.is_valid():
+		_zoom_tween.kill()
+
+
 func _update_shake(delta: float) -> void:
 	if _shake_time <= 0.0:
 		return
 	_shake_time = maxf(_shake_time - delta, 0.0)
 	if _shake_time <= 0.0:
 		position = Vector2.ZERO
+		_fighters.rotation = 0.0
 		return
 	var amount := _shake_strength * (_shake_time / SHAKE_TIME)
 	position = Vector2(randf_range(-amount, amount), randf_range(-amount, amount))
+	_fighters.rotation = randf_range(-SHAKE_ROTATION, SHAKE_ROTATION) * (_shake_time / SHAKE_TIME)
 
 
 func _hit_stop() -> void:

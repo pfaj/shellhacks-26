@@ -99,6 +99,9 @@ const JAB_TIME := 0.2
 const PUNCH_TIME := 0.55
 const HURT_TIME := 0.35
 const BREATH_AMPLITUDE := 0.007
+const KNOCKBACK_DISTANCE := 44.0
+const KNOCKBACK_RETURN := 8.0
+const IMPACT_HEIGHT := 0.74
 
 enum Action { IDLE, JAB, PUNCH, BLOCK, HURT, KO }
 
@@ -127,9 +130,12 @@ var _idle_frame := 0
 var _idle_timer := 0.0
 var _state_timer := 0.0
 var _hurt_key := "hurt_r"
+var _hurt_pitch := 1.0
+var _push := 0.0
 
 
 func _process(delta: float) -> void:
+	_push = lerpf(_push, 0.0, clampf(delta * KNOCKBACK_RETURN, 0.0, 1.0))
 	_cooldown = maxf(_cooldown - delta, 0.0)
 	if _chain_timer > 0.0:
 		_chain_timer = maxf(_chain_timer - delta, 0.0)
@@ -182,6 +188,8 @@ func setup(color: Color, is_local: bool) -> void:
 	_idle_frame = 0
 	_idle_timer = 0.0
 	_hurt_key = "hurt_r"
+	_hurt_pitch = 1.0
+	_push = 0.0
 	_breath = 1.0
 	_breath_phase = 0.0
 	_refresh_pose()
@@ -215,10 +223,19 @@ func play_action(kind: String) -> bool:
 	return false
 
 
-func play_hurt(kind: String) -> bool:
+func play_hurt(kind: String, hit_pitch := 1.0) -> bool:
 	var jab := kind == Protocol.JAB
 	_hurt_key = "hurt_r" if jab == _local else "hurt_l"
+	_hurt_pitch = hit_pitch
 	return _request(Action.HURT)
+
+
+func impact_point() -> Vector2:
+	return position + Vector2(0.0, -_draw_height * IMPACT_HEIGHT)
+
+
+func knockback(direction: float) -> void:
+	_push = direction * KNOCKBACK_DISTANCE
 
 
 func set_block(value: bool) -> void:
@@ -251,6 +268,8 @@ func reset_round() -> void:
 	_idle_frame = 0
 	_idle_timer = 0.0
 	_hurt_key = "hurt_r"
+	_hurt_pitch = 1.0
+	_push = 0.0
 	_breath = 1.0
 	_breath_phase = 0.0
 	_refresh_pose()
@@ -365,7 +384,7 @@ func _refresh_pose() -> void:
 	var width := _draw_width * _breath
 	var height := _draw_height * _breath
 	var offset_x := -(1.0 - alignment.x) * width if FLIP else -alignment.x * width
-	_sprite.position = Vector2(offset_x, -alignment.y * height)
+	_sprite.position = Vector2(offset_x, -alignment.y * height + _push)
 	_sprite.scale = Vector2.ONE * _base_scale * _breath
 
 
@@ -428,6 +447,7 @@ func _play_sound(action: Action) -> void:
 			Sfx.play("whoosh", 0.05, 0.92)
 		Action.HURT:
 			Sfx.play(Protocol.HURT, 0.05)
-			Sfx.play(Protocol.HIT, 0.08)
+			Sfx.play(Protocol.HIT, 0.08, _hurt_pitch)
+			_hurt_pitch = 1.0
 		Action.KO:
 			Sfx.play(Protocol.KO)

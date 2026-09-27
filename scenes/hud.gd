@@ -7,6 +7,8 @@ const MAX_HP := 100
 const PUNCH_DAMAGE := 12
 const ACTION_LABEL_TIME := 0.6
 const DAMAGE_DRIFT := -100.0
+const COMBO_BAR_WIDTH := 560.0
+const COMBO_HOT := Color(1.0, 0.55, 0.15)
 
 var _world: Node2D = null
 var _last_local_hp := -1
@@ -18,8 +20,13 @@ var _remote_blocking := false
 var _last_local_pips := 0
 var _last_remote_pips := 0
 var _dot: Texture2D
+var _ring: Texture2D
 var _local_color := Color.WHITE
 var _peer_color := Color.WHITE
+var _combo_bar_bg: ColorRect
+var _combo_fill: ColorRect
+var _hint: Label
+var _hint_tween: Tween
 
 @onready var _local_name: Label = $LocalPanel/LocalName
 @onready var _local_chip: ColorRect = $LocalPanel/LocalChip
@@ -68,6 +75,50 @@ func _ready() -> void:
 	Ui.press_pop(_rematch_button)
 	Ui.press_pop(_result_exit_button)
 	Ui.press_pop(_exit_button)
+	_build_combo_bar()
+	_build_hint()
+
+
+func _build_combo_bar() -> void:
+	_combo_bar_bg = ColorRect.new()
+	_combo_bar_bg.color = Color(1, 1, 1, 0.16)
+	_combo_bar_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_combo_bar_bg.visible = false
+	_combo_bar_bg.anchor_left = 0.5
+	_combo_bar_bg.anchor_right = 0.5
+	_combo_bar_bg.offset_left = -COMBO_BAR_WIDTH * 0.5
+	_combo_bar_bg.offset_right = COMBO_BAR_WIDTH * 0.5
+	_combo_bar_bg.offset_top = 322.0
+	_combo_bar_bg.offset_bottom = 342.0
+	add_child(_combo_bar_bg)
+	_combo_fill = ColorRect.new()
+	_combo_fill.color = Ui.ACCENT
+	_combo_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_combo_fill.offset_right = COMBO_BAR_WIDTH
+	_combo_fill.offset_bottom = 20.0
+	_combo_bar_bg.add_child(_combo_fill)
+
+
+func _build_hint() -> void:
+	_hint = Label.new()
+	_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hint.visible = false
+	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_hint.add_theme_font_size_override("font_size", 32)
+	_hint.add_theme_color_override("font_color", Color(1, 1, 1, 0.94))
+	_hint.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	_hint.add_theme_constant_override("outline_size", 8)
+	_hint.anchor_left = 0.5
+	_hint.anchor_right = 0.5
+	_hint.anchor_top = 1.0
+	_hint.anchor_bottom = 1.0
+	_hint.offset_left = -480.0
+	_hint.offset_right = 480.0
+	_hint.offset_top = -296.0
+	_hint.offset_bottom = -176.0
+	add_child(_hint)
 
 
 func _process(delta: float) -> void:
@@ -147,19 +198,55 @@ func set_panels_visible(value: bool) -> void:
 	_remote_panel.visible = value
 
 
-func show_combo(count: int) -> void:
+func show_combo(count: int, multiplier: float) -> void:
 	if count < 2:
 		hide_combo()
 		return
 	_combo_label.visible = true
-	_combo_label.text = "%d HITS" % count
+	_combo_bar_bg.visible = true
+	_combo_label.text = "%d HITS   x%.2f" % [count, multiplier]
+	_combo_fill.color = Ui.ACCENT.lerp(COMBO_HOT, clampf((count - 2) / 8.0, 0.0, 1.0))
+	_combo_fill.offset_right = COMBO_BAR_WIDTH
 	_combo_label.pivot_offset = _combo_label.size * 0.5
 	_combo_label.scale = Vector2(1.25, 1.25)
 	create_tween().tween_property(_combo_label, "scale", Vector2.ONE, 0.12)
 
 
+func set_combo_ratio(ratio: float) -> void:
+	if _combo_bar_bg == null or not _combo_bar_bg.visible:
+		return
+	_combo_fill.offset_right = COMBO_BAR_WIDTH * clampf(ratio, 0.0, 1.0)
+
+
 func hide_combo() -> void:
 	_combo_label.visible = false
+	if _combo_bar_bg != null:
+		_combo_bar_bg.visible = false
+
+
+func show_hint(text: String) -> void:
+	if _hint == null or (text == _hint.text and _hint.visible):
+		return
+	_hint.text = text
+	_hint.visible = true
+	_hint.modulate.a = 0.0
+	_kill_hint_tween()
+	_hint_tween = create_tween()
+	_hint_tween.tween_property(_hint, "modulate:a", 1.0, 0.25)
+
+
+func hide_hint() -> void:
+	if _hint == null or not _hint.visible:
+		return
+	_kill_hint_tween()
+	_hint_tween = create_tween()
+	_hint_tween.tween_property(_hint, "modulate:a", 0.0, 0.25)
+	_hint_tween.tween_callback(_hint.hide)
+
+
+func _kill_hint_tween() -> void:
+	if _hint_tween != null and _hint_tween.is_valid():
+		_hint_tween.kill()
 
 
 func set_status(text: String) -> void:
@@ -285,6 +372,73 @@ func flash_hit(victim: Node2D) -> void:
 		return
 	victim.modulate = Color(1.7, 1.6, 1.6)
 	create_tween().tween_property(victim, "modulate", Color.WHITE, 0.15)
+
+
+func show_impact(victim: Node2D, heavy: bool, blocked := false) -> void:
+	if _world == null or victim == null:
+		return
+	var origin: Vector2 = victim.impact_point()
+	var color := Color(0.45, 0.8, 1.0) if blocked else (COMBO_HOT if heavy else Color(1.0, 0.92, 0.45))
+	_spawn_ring(origin, color, 1.35 if heavy else 1.0)
+	_spawn_burst(origin, color, 24 if heavy else 13, heavy)
+
+
+func _spawn_ring(origin: Vector2, color: Color, size: float) -> void:
+	var ring := Sprite2D.new()
+	ring.texture = _ring_texture()
+	ring.modulate = color
+	ring.position = origin
+	ring.rotation = randf_range(0.0, TAU)
+	ring.scale = Vector2.ONE * 0.35 * size
+	_world.add_child(ring)
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(ring, "scale", Vector2.ONE * 1.15 * size, 0.22).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(ring, "modulate:a", 0.0, 0.24)
+	tween.chain().tween_callback(ring.queue_free)
+
+
+func _spawn_burst(origin: Vector2, color: Color, amount: int, heavy: bool) -> void:
+	var particles := CPUParticles2D.new()
+	particles.texture = _dot_texture()
+	particles.amount = amount
+	particles.lifetime = 0.5 if heavy else 0.35
+	particles.one_shot = true
+	particles.explosiveness = 1.0
+	particles.emitting = true
+	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+	particles.emission_sphere_radius = 18.0
+	particles.position = origin
+	particles.direction = Vector2(0, -1)
+	particles.spread = 180.0
+	particles.initial_velocity_min = 380.0 if heavy else 260.0
+	particles.initial_velocity_max = 780.0 if heavy else 520.0
+	particles.gravity = Vector2(900, 900)
+	particles.damping_min = 120.0
+	particles.damping_max = 280.0
+	particles.scale_amount_min = 0.25
+	particles.scale_amount_max = 0.9 if heavy else 0.6
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(1, 1, 1, 1))
+	ramp.set_color(1, color)
+	particles.color_ramp = ramp
+	_world.add_child(particles)
+	get_tree().create_timer(1.2).timeout.connect(particles.queue_free)
+
+
+func _ring_texture() -> Texture2D:
+	if _ring == null:
+		var side := 128
+		var image := Image.create(side, side, false, Image.FORMAT_RGBA8)
+		image.fill(Color(0, 0, 0, 0))
+		var center := Vector2(side * 0.5 - 0.5, side * 0.5 - 0.5)
+		for y in side:
+			for x in side:
+				var distance := Vector2(x, y).distance_to(center)
+				var alpha := 1.0 - clampf(absf(distance - 52.0) / 8.0, 0.0, 1.0)
+				if alpha > 0.0:
+					image.set_pixel(x, y, Color(1, 1, 1, alpha))
+		_ring = ImageTexture.create_from_image(image)
+	return _ring
 
 
 func _spawn_confetti(color: Color) -> void:

@@ -99,17 +99,19 @@ body {
 
 #sockem-boot-title {
 	font-family: system-ui, -apple-system, sans-serif;
-	font-size: 46px;
+	font-size: 40px;
 	font-weight: 800;
-	letter-spacing: 10px;
+	letter-spacing: 6px;
 	margin-bottom: 16px;
+	padding: 0 16px;
+	text-align: center;
 	text-shadow: 0 0 24px rgba(47, 129, 247, .75);
 	animation: sockem-pulse 1.8s ease-in-out infinite;
 }
 
 @keyframes sockem-pulse {
-	0%, 100% { opacity: .78; letter-spacing: 10px; }
-	50% { opacity: 1; letter-spacing: 12px; }
+	0%, 100% { opacity: .78; letter-spacing: 6px; }
+	50% { opacity: 1; letter-spacing: 7px; }
 }
 
 #sockem-boot-hint {
@@ -397,7 +399,7 @@ function sockemHideTextInput() {
 		</noscript>
 
 		<div id="status">
-			<div id="sockem-boot-title">SOCK'EM</div>
+			<div id="sockem-boot-title">CLANKER CLASH</div>
 			<div id="sockem-boot-hint">First tap will ask for motion access - allow it for tilt controls</div>
 			<img id="status-splash" class="$GODOT_SPLASH_CLASSES" src="$GODOT_SPLASH" alt="">
 			<progress id="status-progress"></progress>

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dvvu06i3v6irh"]
 
 [ext_resource type="Script" uid="uid://chgisq7gnej3k" path="res://scenes/main_menu.gd" id="1_menu"]
-[ext_resource type="Script" path="res://scenes/head.gd" id="2_head"]
+[ext_resource type="Texture2D" path="res://assets/Clanker Clash Logo.svg" id="2_logo"]
 [ext_resource type="Texture2D" path="res://assets/branding/Shellhacks Background_Home Screen Vertical.svg" id="3_bg"]
 
 [node name="MainMenu" type="Control"]
@@ -43,10 +43,13 @@ layout_mode = 2
 theme_override_constants/separation = 28
 
 [node name="Logo" type="TextureRect" parent="Margin/VBox"]
-custom_minimum_size = Vector2(0, 300)
+custom_minimum_size = Vector2(0, 720)
 layout_mode = 2
 size_flags_vertical = 4
-script = ExtResource("2_head")
+texture = ExtResource("2_logo")
+texture_filter = 4
+expand_mode = 1
+stretch_mode = 5
 
 [node name="RejoinBanner" type="Button" parent="Margin/VBox"]
 visible = false

@@ -1,6 +1,6 @@
 extends Control
 
-@onready var _logo: Head = $Margin/VBox/Logo
+@onready var _logo: TextureRect = $Margin/VBox/Logo
 @onready var _banner: Button = $Margin/VBox/RejoinBanner
 @onready var _identity: HBoxContainer = $Margin/VBox/IdentityRow
 @onready var _dot: Panel = $Margin/VBox/IdentityRow/ColorDot
@@ -12,10 +12,12 @@ extends Control
 @onready var _practice: Button = $Margin/VBox/PracticeButton
 @onready var _spectate: Button = $Margin/VBox/SpectateButton
 
+var _tilt_row: HBoxContainer
+
 
 func _ready() -> void:
 	Sfx.play_music("menu")
-	_logo.apply_color(Ui.ACCENT)
+	Settings.ensure()
 	_style_dot(Net.my_color)
 	_name.text = Net.my_name
 	_wins.text = "%dW" % Net.my_wins
@@ -27,6 +29,7 @@ func _ready() -> void:
 	Ui.style_button(_practice, Color(0, 0, 0, 0), Ui.ACCENT)
 	Ui.style_button(_banner, Color(0, 0, 0, 0), Ui.ACCENT)
 	Ui.style_button(_spectate, Color(0, 0, 0, 0), Ui.ACCENT)
+	_build_tilt_row()
 	if _auto_spectate():
 		Net.spectate_auto = true
 		Fx.goto("res://scenes/spectate_screen.tscn")
@@ -69,9 +72,42 @@ func _auto_spectate() -> bool:
 	return str(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('spectate')")) == "auto"
 
 
+func _build_tilt_row() -> void:
+	_tilt_row = HBoxContainer.new()
+	_tilt_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_tilt_row.add_theme_constant_override("separation", 24)
+	var label := Label.new()
+	label.text = "TILT SENSITIVITY"
+	label.add_theme_font_size_override("font_size", 28)
+	label.add_theme_color_override("font_color", Color(1, 1, 1, 0.72))
+	_tilt_row.add_child(label)
+	var slider := HSlider.new()
+	slider.min_value = Settings.TILT_MIN
+	slider.max_value = Settings.TILT_MAX
+	slider.step = 0.1
+	slider.value = Settings.tilt_sensitivity
+	slider.custom_minimum_size = Vector2(360, 0)
+	slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_tilt_row.add_child(slider)
+	var value_label := Label.new()
+	value_label.custom_minimum_size = Vector2(110, 0)
+	value_label.add_theme_font_size_override("font_size", 28)
+	value_label.add_theme_color_override("font_color", Ui.ACCENT)
+	value_label.text = "%.1fx" % Settings.tilt_sensitivity
+	_tilt_row.add_child(value_label)
+	slider.value_changed.connect(_on_tilt_changed.bind(value_label))
+	_hint.add_sibling(_tilt_row)
+	_hint.get_parent().move_child(_tilt_row, _hint.get_index())
+
+
+func _on_tilt_changed(value: float, value_label: Label) -> void:
+	Settings.set_tilt_sensitivity(value)
+	value_label.text = "%.1fx" % Settings.tilt_sensitivity
+
+
 func _play_intro() -> void:
 	await get_tree().process_frame
-	var items: Array[Control] = [_identity, _hint, _play, _practice, _spectate]
+	var items: Array[Control] = [_identity, _tilt_row, _hint, _play, _practice, _spectate]
 	if _banner.visible:
 		items.insert(0, _banner)
 	_fade_slide(_logo, 0.0)
