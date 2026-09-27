@@ -120,7 +120,7 @@ func _layout_stage() -> void:
 
 
 func _update_tilt(delta: float) -> void:
-	var keyboard := _keyboard_lean()
+	var keyboard := FighterInput.keyboard_lean()
 	if keyboard != 0.0:
 		_move = keyboard
 		return
@@ -132,14 +132,6 @@ func _update_tilt(delta: float) -> void:
 		_move = -1.0
 	elif absf(value) < TILT_EXIT_DEGREES:
 		_move = 0.0
-
-
-func _keyboard_lean() -> float:
-	if Input.is_key_pressed(KEY_LEFT):
-		return 1.0
-	if Input.is_key_pressed(KEY_RIGHT):
-		return -1.0
-	return 0.0
 
 
 func _update_round_timer(delta: float) -> void:

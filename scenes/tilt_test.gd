@@ -23,37 +23,40 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	var gamma := 0.0
-	if _tilt != null:
-		gamma = float(_tilt.gamma)
-	_smoothed_gamma = lerpf(_smoothed_gamma, gamma, clampf(delta * SMOOTHING, 0.0, 1.0))
-	var value := _smoothed_gamma - _neutral
+	var value := _lean_value(delta)
 	if absf(value) < DEADZONE_DEGREES:
 		value = 0.0
 	var travel := maxf(size.x * 0.5 - 80.0, 1.0)
 	var offset := clampf(value / MAX_TILT_DEGREES, -1.0, 1.0) * travel
 	_marker.position.x = size.x * 0.5 + offset - _marker.size.x * 0.5
 	_marker.position.y = size.y * 0.5 - _marker.size.y * 0.5
-	_status.text = _status_text(gamma, value)
+	_status.text = _status_text(value)
 
 
-func _status_text(gamma: float, value: float) -> String:
+func _lean_value(delta: float) -> float:
+	var keyboard := FighterInput.keyboard_lean()
+	var target := _neutral
+	if keyboard != 0.0:
+		target = _neutral + keyboard * MAX_TILT_DEGREES
+	elif _tilt != null:
+		target = float(_tilt.gamma)
+	_smoothed_gamma = lerpf(_smoothed_gamma, target, clampf(delta * SMOOTHING, 0.0, 1.0))
+	return _smoothed_gamma - _neutral
+
+
+func _status_text(value: float) -> String:
 	var lines: PackedStringArray = []
+	lines.append("Lean with the left / right arrow keys. Taps: %d" % _taps)
 	if not OS.has_feature("web"):
-		lines.append("Not running in a browser - tilt unavailable.")
-		lines.append("Taps: %d" % _taps)
-		return "\n".join(lines)
-	if _tilt == null:
-		lines.append("Tilt bridge missing. Is head_include set on the export preset?")
-		lines.append("Taps: %d" % _taps)
-		return "\n".join(lines)
-	lines.append("permission: %s" % str(_tilt.permission))
-	lines.append("ready: %s" % str(_tilt.ready))
-	lines.append("alpha %6.1f   beta %6.1f   gamma %6.1f" % [float(_tilt.alpha), float(_tilt.beta), float(_tilt.gamma)])
-	lines.append("gamma %6.1f   neutral %6.1f   value %6.1f" % [gamma, _neutral, value])
-	if str(_tilt.error) != "":
-		lines.append("error: %s" % str(_tilt.error))
-	lines.append("Taps: %d" % _taps)
+		lines.append("Tilt unavailable outside a browser.")
+	elif _tilt == null:
+		lines.append("Tilt bridge missing.")
+	else:
+		lines.append("permission: %s   ready: %s" % [str(_tilt.permission), str(_tilt.ready)])
+		lines.append("alpha %6.1f   beta %6.1f   gamma %6.1f" % [float(_tilt.alpha), float(_tilt.beta), float(_tilt.gamma)])
+		if str(_tilt.error) != "":
+			lines.append("error: %s" % str(_tilt.error))
+	lines.append("neutral %6.1f   value %6.1f" % [_neutral, value])
 	return "\n".join(lines)
 
 
