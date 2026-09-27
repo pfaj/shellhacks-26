@@ -59,13 +59,20 @@ func _on_rooms_response(_result: int, code: int, _headers: PackedStringArray, bo
 			_clear_list()
 		return
 	rooms.sort_custom(func(a, b): return int(a.get("at", 0)) > int(b.get("at", 0)))
-	_status.text = "%d live room%s" % [rooms.size(), "" if rooms.size() == 1 else "s"]
+	var fighting := 0
+	for room in rooms:
+		if _is_live(room):
+			fighting += 1
+	_status.text = "Waiting for a fight to start..." if fighting == 0 else "%d live fight%s" % [fighting, "" if fighting == 1 else "s"]
 	if Net.spectate_auto:
-		_watch(str(rooms[0].get("code", "")))
+		for room in rooms:
+			if _is_live(room):
+				_watch(str(room.get("code", "")))
+				return
 		return
 	var signature := ""
 	for room in rooms:
-		signature += "%s|%s|%s;" % [room.get("code", ""), room.get("names", []), room.get("colors", [])]
+		signature += "%s|%s|%s|%s|%s;" % [room.get("code", ""), room.get("names", []), room.get("colors", []), room.get("phase", ""), room.get("present", 0)]
 	if signature == _signature:
 		return
 	_signature = signature
@@ -74,14 +81,20 @@ func _on_rooms_response(_result: int, code: int, _headers: PackedStringArray, bo
 		_add_room(room)
 
 
+func _is_live(room: Dictionary) -> bool:
+	return int(room.get("present", 0)) >= 2 and str(room.get("phase", "lobby")) == "fighting"
+
+
 func _add_room(room: Dictionary) -> void:
 	var names: Array = room.get("names", [])
 	var match_name := " vs ".join(names) if names.size() > 0 else "waiting for players"
-	var live := int(room.get("present", 0)) >= 2
+	var present := int(room.get("present", 0))
+	var live := _is_live(room)
+	var tag := "LIVE" if live else "IN LOBBY"
 	var button := Button.new()
 	button.custom_minimum_size = Vector2(0, 130)
 	button.add_theme_font_size_override("font_size", 40)
-	button.text = "ROOM %s    %s" % [room.get("code", "?"), match_name]
+	button.text = "ROOM %s    %s    %s" % [room.get("code", "?"), match_name, tag]
 	if not live:
 		button.modulate = Color(1, 1, 1, 0.6)
 	Ui.style_button(button, Ui.ACCENT if live else Color(0, 0, 0, 0), Color(0, 0, 0, 0) if live else Ui.ACCENT)
