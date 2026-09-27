@@ -13,6 +13,7 @@ const STEPS: Array[String] = ["3", "2", "1", "FIGHT!"]
 
 var _step := 0
 var _running := true
+var _leaving := false
 
 
 func _ready() -> void:
@@ -25,8 +26,19 @@ func _ready() -> void:
 	_timer.timeout.connect(_on_countdown_timeout)
 	Net.peer_profile.connect(_on_peer_profile)
 	Net.peer_left.connect(_on_peer_left)
+	Net.room_ready.connect(_on_rejoined)
+	Net.joined.connect(_on_rejoined)
 	_status.text = "Get ready..."
 	_timer.start()
+
+
+func _on_rejoined() -> void:
+	if _leaving:
+		return
+	_leaving = true
+	Net.local_rounds = 0
+	Net.remote_rounds = 0
+	get_tree().change_scene_to_file("res://scenes/lobby_screen.tscn")
 
 
 func _exit_tree() -> void:

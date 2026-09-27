@@ -42,6 +42,7 @@ var _combo_timer := 0.0
 var _shake_time := 0.0
 var _shake_strength := 0.0
 var _hit_stop_active := false
+var _leaving := false
 
 @onready var _local: Fighter = $Fighters/LocalFighter
 @onready var _remote: Fighter = $Fighters/RemoteFighter
@@ -69,6 +70,9 @@ func _ready() -> void:
 	_controls.block_changed.connect(_on_block_changed)
 	Net.peer_message.connect(_on_peer_message)
 	Net.peer_left.connect(_on_peer_left)
+	Net.peer_forfeit.connect(_on_peer_forfeit)
+	Net.room_ready.connect(_on_room_ready)
+	Net.joined.connect(_on_rejoined)
 	Net.status_changed.connect(_on_status_changed)
 	_neutral = _raw_gamma()
 	Sfx.play_music("fight")
@@ -406,20 +410,49 @@ func _check_rematch() -> void:
 
 func _on_peer_left() -> void:
 	_remote.play_action(Protocol.KO)
-	_hud.set_status("Opponent disconnected")
+	_hud.set_status("Opponent disconnected - waiting for reconnect...")
 	if _match_over:
 		_hud.set_result_status("Opponent left the match")
 		_hud.disable_rematch()
 
 
+func _on_peer_forfeit() -> void:
+	if _match_over:
+		return
+	_match_over = true
+	_controls.reset()
+	_hud.hide_combo()
+	Net.add_win()
+	_remote.play_action(Protocol.KO)
+	_hud.show_result("YOU WIN", "Opponent forfeited", false)
+	Sfx.play("win")
+
+
+func _on_room_ready() -> void:
+	_return_to_lobby()
+
+
+func _on_rejoined() -> void:
+	_return_to_lobby()
+
+
+func _return_to_lobby() -> void:
+	if Net.local_mode or _leaving:
+		return
+	_leaving = true
+	Net.local_rounds = 0
+	Net.remote_rounds = 0
+	get_tree().change_scene_to_file("res://scenes/lobby_screen.tscn")
+
+
 func _on_status_changed(text: String) -> void:
-	if text == "Disconnected":
-		_hud.set_status("Connection lost")
+	if text == "Disconnected" or text.begins_with("Connection lost"):
+		_hud.set_status(text)
 
 
 func _on_exit_pressed() -> void:
 	Sfx.stop_music()
-	Net.leave()
+	Net.leave(not _match_over)
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 
