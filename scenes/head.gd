@@ -27,5 +27,6 @@ func _material() -> ShaderMaterial:
 	if _shader_material == null:
 		_shader_material = ShaderMaterial.new()
 		_shader_material.shader = HEAD_SHADER
+		_shader_material.set_shader_parameter("base_gain", 0.72)
 		material = _shader_material
 	return _shader_material
