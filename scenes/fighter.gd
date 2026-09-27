@@ -3,7 +3,8 @@ extends Node2D
 
 signal attack_started(kind: String)
 
-const POSE_DIR := "res://assets/fighters/Trial Run Bots/"
+const POSE_DIR := "res://assets/fighters/Shaded Bots/"
+const OVERLAY_SHADER := preload("res://scenes/overlay_tint.gdshader")
 const LOCAL_PREFIX := "Shellhacks_Bots_P1 "
 const PEER_PREFIX := "Shellhacks_Bots_Opponent "
 const FLIP := true
@@ -11,8 +12,14 @@ const LOCAL_POSES := {
 	"idle_a": "Idle 1",
 	"idle_b": "Idle 2",
 	"jab": "Right Jab",
+	"jab_l": "Right Jab",
+	"jab_r": "Right Jab R",
 	"punch": "Left Hook",
+	"punch_l": "Left Hook L",
+	"punch_r": "Left Hook",
 	"block": "Block",
+	"block_l": "Block L",
+	"block_r": "Block R",
 	"hurt_l": "Hit Left",
 	"hurt_r": "Hit Right",
 	"dodge_l": "Dodge L",
@@ -23,8 +30,14 @@ const PEER_POSES := {
 	"idle_a": "Idle 1",
 	"idle_b": "Idle 2",
 	"jab": "L Hook",
+	"jab_l": "Left Hook L",
+	"jab_r": "L Hook",
 	"punch": "R Jab",
+	"punch_l": "R Jab",
+	"punch_r": "Right Hook R",
 	"block": "Block",
+	"block_l": "Block L",
+	"block_r": "Block R",
 	"hurt_l": "Hit L",
 	"hurt_r": "Hit R",
 	"dodge_l": "Dodge L",
@@ -127,7 +140,10 @@ func setup(color: Color, is_local: bool) -> void:
 	_local = is_local
 	_load_poses(is_local)
 	_align = LOCAL_ALIGN if is_local else PEER_ALIGN
-	_sprite.self_modulate = color
+	var material := ShaderMaterial.new()
+	material.shader = OVERLAY_SHADER
+	material.set_shader_parameter("tint", color)
+	_sprite.material = material
 	_sprite.centered = false
 	_sprite.flip_h = FLIP
 	var bot_height := LOCAL_BOT_HEIGHT if is_local else PEER_BOT_HEIGHT
@@ -296,19 +312,23 @@ func _refresh_pose() -> void:
 	var texture: Texture2D = _poses.get(key)
 	if texture != null and _sprite.texture != texture:
 		_sprite.texture = texture
-	var alignment: Vector2 = _align.get(key, Vector2(0.5, 0.95))
+	var alignment: Vector2 = _align.get(key, _neutral_align(key))
 	var offset_x := -(1.0 - alignment.x) * _draw_width if FLIP else -alignment.x * _draw_width
 	_sprite.position = Vector2(offset_x, -alignment.y * _draw_height)
+
+
+func _neutral_align(key: String) -> Vector2:
+	return _align.get(key.trim_suffix("_l").trim_suffix("_r"), Vector2(0.5, 0.95))
 
 
 func _pose_key() -> String:
 	match state:
 		Action.JAB:
-			return "jab"
+			return "jab" + _lane_suffix()
 		Action.PUNCH:
-			return "punch"
+			return "punch" + _lane_suffix()
 		Action.BLOCK:
-			return "block"
+			return "block" + _lane_suffix()
 		Action.HURT:
 			return _hurt_key
 		Action.KO:
@@ -318,6 +338,14 @@ func _pose_key() -> String:
 	if _move > DODGE_THRESHOLD:
 		return "dodge_l" if _local else "dodge_r"
 	return "idle_a" if _idle_frame == 0 else "idle_b"
+
+
+func _lane_suffix() -> String:
+	if _move > DODGE_THRESHOLD:
+		return "_l" if _local else "_r"
+	if _move < -DODGE_THRESHOLD:
+		return "_r" if _local else "_l"
+	return ""
 
 
 func _load_poses(is_local: bool) -> void:
