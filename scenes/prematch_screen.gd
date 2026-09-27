@@ -14,13 +14,15 @@ const STEPS: Array[String] = ["3", "2", "1", "FIGHT!"]
 var _step := 0
 var _running := true
 var _leaving := false
+var _left_portrait: Head
+var _right_portrait: Head
 
 
 func _ready() -> void:
 	Sfx.play_music("fight")
-	_left_color.color = Net.my_color
+	_left_portrait = _attach_head(_left_color, Net.my_color)
 	_left_name.text = Net.my_name
-	_right_color.color = Net.peer_color
+	_right_portrait = _attach_head(_right_color, Net.peer_color)
 	_right_name.text = Net.peer_name
 	_leave_button.pressed.connect(_on_leave_pressed)
 	_timer.timeout.connect(_on_countdown_timeout)
@@ -47,7 +49,16 @@ func _exit_tree() -> void:
 
 func _on_peer_profile(peer_name: String, peer_color: Color) -> void:
 	_right_name.text = peer_name
-	_right_color.color = peer_color
+	_right_portrait.apply_color(peer_color)
+
+
+func _attach_head(chip: ColorRect, color: Color) -> Head:
+	chip.color = Color(0, 0, 0, 0)
+	var head := Head.new()
+	head.set_anchors_preset(Control.PRESET_FULL_RECT)
+	head.apply_color(color)
+	chip.add_child(head)
+	return head
 
 
 func _on_peer_left() -> void:

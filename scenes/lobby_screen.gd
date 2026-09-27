@@ -23,6 +23,7 @@ const SWATCHES: Array[Color] = [
 @onready var _back_button: Button = $Margin/Column/BackButton
 
 var _selected := 0
+var _right_portrait: Head
 
 
 func _ready() -> void:
@@ -35,7 +36,7 @@ func _ready() -> void:
 	_build_swatches()
 	_refresh_swatches()
 	_right_name.text = Net.peer_name
-	_right_color.color = Net.peer_color
+	_right_portrait = _attach_head(_right_color, Net.peer_color)
 	_refresh_peer_ready(Net.peer_ready)
 	_ready_button.pressed.connect(_on_ready_pressed)
 	_back_button.pressed.connect(_on_back_pressed)
@@ -91,7 +92,7 @@ func _on_ready_pressed() -> void:
 
 func _on_peer_profile(peer_name: String, peer_color: Color) -> void:
 	_right_name.text = peer_name
-	_right_color.color = peer_color
+	_right_portrait.apply_color(peer_color)
 
 
 func _on_peer_ready_changed(value: bool) -> void:
@@ -129,6 +130,14 @@ func _build_swatches() -> void:
 		button.custom_minimum_size = Vector2(84, 84)
 		button.focus_mode = Control.FOCUS_NONE
 		button.pressed.connect(_on_swatch_pressed.bind(i))
+		var head := Head.new()
+		head.set_anchors_preset(Control.PRESET_FULL_RECT)
+		head.offset_left = 8.0
+		head.offset_top = 8.0
+		head.offset_right = -8.0
+		head.offset_bottom = -8.0
+		head.apply_color(SWATCHES[i])
+		button.add_child(head)
 		_color_row.add_child(button)
 
 
@@ -136,19 +145,28 @@ func _refresh_swatches() -> void:
 	for i in _color_row.get_child_count():
 		var button: Button = _color_row.get_child(i)
 		var style := StyleBoxFlat.new()
-		style.bg_color = SWATCHES[i]
-		style.corner_radius_top_left = 12
-		style.corner_radius_top_right = 12
-		style.corner_radius_bottom_left = 12
-		style.corner_radius_bottom_right = 12
+		style.bg_color = Color(0, 0, 0, 0)
+		style.corner_radius_top_left = 18
+		style.corner_radius_top_right = 18
+		style.corner_radius_bottom_left = 18
+		style.corner_radius_bottom_right = 18
 		if i == _selected:
-			style.border_width_left = 8
-			style.border_width_top = 8
-			style.border_width_right = 8
-			style.border_width_bottom = 8
+			style.border_width_left = 6
+			style.border_width_top = 6
+			style.border_width_right = 6
+			style.border_width_bottom = 6
 			style.border_color = Color.WHITE
 		for state in ["normal", "hover", "pressed", "focus"]:
 			button.add_theme_stylebox_override(state, style)
+
+
+func _attach_head(chip: ColorRect, color: Color) -> Head:
+	chip.color = Color(0, 0, 0, 0)
+	var head := Head.new()
+	head.set_anchors_preset(Control.PRESET_FULL_RECT)
+	head.apply_color(color)
+	chip.add_child(head)
+	return head
 
 
 func _closest_swatch(color: Color) -> int:
