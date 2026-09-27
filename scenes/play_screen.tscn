@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://6g3mjkq46jlp" path="res://scenes/play_screen.gd" id="1_play"]
 [ext_resource type="PackedScene" path="res://scenes/fighter.tscn" id="2_fighter"]
 [ext_resource type="PackedScene" uid="uid://bjetja5e8xnff" path="res://scenes/hud.tscn" id="3_hud"]
+[ext_resource type="Texture2D" path="res://assets/branding/Shellhacks Background_BG Vertical.svg" id="4_bg"]
 
 [node name="PlayScreen" type="Control" unique_id=915429524]
 layout_mode = 3
@@ -14,46 +15,17 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_play")
 
-[node name="Sky" type="ColorRect" parent="." unique_id=1150934662]
+[node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.09, 0.1, 0.14, 1)
-
-[node name="Floor" type="ColorRect" parent="." unique_id=986506183]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.62
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.16, 0.13, 0.18, 1)
-
-[node name="RopeTop" type="ColorRect" parent="." unique_id=1356261176]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.06
-anchor_right = 1.0
-anchor_bottom = 0.06
-offset_top = 856.0
-offset_bottom = 870.0
-grow_horizontal = 2
-color = Color(1, 1, 1, 0.25)
-
-[node name="RopeMid" type="ColorRect" parent="." unique_id=1495660840]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.14
-anchor_right = 1.0
-anchor_bottom = 0.14
-offset_top = 856.00006
-offset_bottom = 866.00006
-grow_horizontal = 2
-color = Color(1, 1, 1, 0.18)
+mouse_filter = 2
+texture = ExtResource("4_bg")
+expand_mode = 1
+stretch_mode = 6
 
 [node name="Fighters" type="Node2D" parent="." unique_id=203220972]
 

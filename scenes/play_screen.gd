@@ -20,6 +20,8 @@ const SHAKE_TIME := 0.18
 const SHAKE_STRENGTH := 12.0
 const HIT_STOP_TIME := 0.07
 const HIT_STOP_SCALE := 0.05
+const BG_VERTICAL := "res://assets/branding/Shellhacks Background_BG Vertical.svg"
+const BG_HORIZONTAL := "res://assets/branding/Shellhacks Background_BG Horizontal.svg"
 
 enum Result { WIN, LOSE, DRAW }
 
@@ -43,13 +45,12 @@ var _shake_time := 0.0
 var _shake_strength := 0.0
 var _hit_stop_active := false
 var _leaving := false
+var _background_wide := false
 
 @onready var _local: Fighter = $Fighters/LocalFighter
 @onready var _remote: Fighter = $Fighters/RemoteFighter
 @onready var _hud: Control = $Hud
-@onready var _floor: ColorRect = $Floor
-@onready var _rope_top: ColorRect = $RopeTop
-@onready var _rope_mid: ColorRect = $RopeMid
+@onready var _background: TextureRect = $Background
 
 
 func _ready() -> void:
@@ -111,17 +112,12 @@ func _input(event: InputEvent) -> void:
 
 
 func _layout_stage() -> void:
+	var wide := size.x > size.y
+	if wide != _background_wide or _background.texture == null:
+		_background_wide = wide
+		_background.texture = load(BG_HORIZONTAL if wide else BG_VERTICAL)
 	var design_height := size.x * (1920.0 / 1080.0)
 	var stage_height := minf(size.y, design_height)
-	var floor_y := stage_height * 0.62 / size.y
-	_floor.anchor_top = floor_y
-	_floor.anchor_bottom = 1.0
-	var rope_top_y := stage_height * 0.06 / size.y
-	_rope_top.anchor_top = rope_top_y
-	_rope_top.anchor_bottom = rope_top_y
-	var rope_mid_y := stage_height * 0.14 / size.y
-	_rope_mid.anchor_top = rope_mid_y
-	_rope_mid.anchor_bottom = rope_mid_y
 	var center := size.x * 0.5
 	_local.place(Vector2(center, stage_height * LOCAL_Y))
 	_remote.place(Vector2(center, stage_height * REMOTE_Y))
