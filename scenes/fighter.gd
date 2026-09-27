@@ -106,6 +106,7 @@ var _poses := {}
 var _align := {}
 var _draw_width := 0.0
 var _draw_height := 0.0
+var _artboard_pixel_height := ARTBOARD_HEIGHT
 var _idle_frame := 0
 var _idle_timer := 0.0
 var _state_timer := 0.0
@@ -151,7 +152,7 @@ func setup(color: Color, is_local: bool) -> void:
 	var content_height := LOCAL_CONTENT_HEIGHT if is_local else PEER_CONTENT_HEIGHT
 	_draw_height = bot_height / content_height
 	_draw_width = _draw_height * ARTBOARD_RATIO
-	var factor := _draw_height / ARTBOARD_HEIGHT
+	var factor := _draw_height / _artboard_pixel_height
 	_sprite.scale = Vector2(factor, factor)
 	state = Action.IDLE
 	_cooldown = 0.0
@@ -170,6 +171,14 @@ func setup(color: Color, is_local: bool) -> void:
 
 func place(new_position: Vector2) -> void:
 	position = new_position
+
+
+func set_art_height(height: float) -> void:
+	_draw_height = height
+	_draw_width = _draw_height * ARTBOARD_RATIO
+	var factor := _draw_height / _artboard_pixel_height
+	_sprite.scale = Vector2(factor, factor)
+	_refresh_pose()
 
 
 func set_move(value: float, delta: float) -> void:
@@ -356,7 +365,9 @@ func _load_poses(is_local: bool) -> void:
 	for key in names.keys():
 		var path: String = "%s%s%s.svg" % [POSE_DIR, prefix, names[key]]
 		if ResourceLoader.exists(path):
-			_poses[key] = load(path)
+			var texture: Texture2D = load(path)
+			_poses[key] = texture
+			_artboard_pixel_height = texture.get_height()
 
 
 func _play_sound(action: Action) -> void:
