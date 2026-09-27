@@ -27,6 +27,7 @@ var _lobby_left: Head
 var _lobby_right: Head
 
 @onready var _background: TextureRect = $Background
+@onready var _stage: Node2D = $Fighters
 @onready var _hud: Control = $Hud
 @onready var _lobby: Control = $Lobby
 @onready var _lobby_room: Label = $Lobby/Margin/Column/RoomLabel
@@ -59,6 +60,8 @@ func _ready() -> void:
 	_lobby_left = Ui.attach_head(_lobby_left_chip, _colors[0])
 	_lobby_right = Ui.attach_head(_lobby_right_chip, _colors[1])
 	_lobby.visible = true
+	_stage.visible = false
+	_background.visible = false
 	_refresh_lobby()
 	_last_message = _now()
 	_hud.set_status("Connecting to room %s..." % Net.spectate_room)
@@ -229,6 +232,8 @@ func _set_in_lobby(value: bool) -> void:
 		return
 	_in_lobby = value
 	_lobby.visible = value
+	_stage.visible = not value
+	_background.visible = not value
 	_hud.set_panels_visible(not value)
 	if value:
 		_refresh_lobby()
