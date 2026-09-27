@@ -2,7 +2,7 @@ shader_type canvas_item;
 
 uniform vec4 tint : source_color = vec4(1.0);
 uniform float saturation : hint_range(0.0, 4.0) = 3.0;
-uniform float contrast : hint_range(0.0, 2.0) = 1.08;
+uniform float contrast : hint_range(0.0, 2.0) = 1.0;
 uniform float base_gain : hint_range(0.0, 1.5) = 1.0;
 
 void fragment() {
