@@ -44,6 +44,7 @@ body {
 	justify-content: center;
 	align-items: center;
 	visibility: hidden;
+	opacity: 1;
 }
 
 #status-splash {
@@ -74,24 +75,54 @@ body {
 	bottom: 10%;
 	width: 60%;
 	height: 14px;
+	border: 0;
 	border-radius: 7px;
 	overflow: hidden;
-	accent-color: #e5424a;
+	accent-color: #2f81f7;
 	margin: 0 auto;
 }
 
+#status-progress::-webkit-progress-bar {
+	background-color: rgba(255, 255, 255, .12);
+	border-radius: 7px;
+}
+
+#status-progress::-webkit-progress-value {
+	background: linear-gradient(90deg, #2f81f7, #6fb1ff);
+	border-radius: 7px;
+}
+
+#status-progress::-moz-progress-bar {
+	background: linear-gradient(90deg, #2f81f7, #6fb1ff);
+	border-radius: 7px;
+}
+
 #sockem-boot-title {
-	font-family: system-ui, sans-serif;
-	font-size: 44px;
-	font-weight: 700;
-	letter-spacing: 8px;
+	font-family: system-ui, -apple-system, sans-serif;
+	font-size: 46px;
+	font-weight: 800;
+	letter-spacing: 10px;
 	margin-bottom: 16px;
+	text-shadow: 0 0 24px rgba(47, 129, 247, .75);
+	animation: sockem-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes sockem-pulse {
+	0%, 100% { opacity: .78; letter-spacing: 10px; }
+	50% { opacity: 1; letter-spacing: 12px; }
 }
 
 #sockem-boot-hint {
-	font-family: system-ui, sans-serif;
+	font-family: system-ui, -apple-system, sans-serif;
 	font-size: 16px;
 	opacity: .55;
+	margin-bottom: 28px;
+	animation: sockem-fade 2.4s ease-in-out infinite;
+}
+
+@keyframes sockem-fade {
+	0%, 100% { opacity: .35; }
+	50% { opacity: .7; }
 }
 
 #status-notice {
@@ -226,7 +257,9 @@ const engine = new Engine(GODOT_CONFIG);
 			return;
 		}
 		if (mode === 'hidden') {
-			statusOverlay.remove();
+			statusOverlay.style.transition = 'opacity .4s ease';
+			statusOverlay.style.opacity = '0';
+			setTimeout(() => statusOverlay.remove(), 450);
 			initializing = false;
 			return;
 		}
