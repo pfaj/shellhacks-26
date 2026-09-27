@@ -1,8 +1,10 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://bjetja5e8xnff"]
 
-[ext_resource type="Script" path="res://scenes/hud.gd" id="1_hud"]
+[ext_resource type="Script" uid="uid://cejme4hxeqjos" path="res://scenes/hud.gd" id="1_hud"]
 
-[node name="Hud" type="Control"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pause"]
+
+[node name="Hud" type="Control" unique_id=100718732]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -12,180 +14,194 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_hud")
 
-[node name="LocalPanel" type="VBoxContainer" parent="."]
+[node name="LocalPanel" type="VBoxContainer" parent="." unique_id=2041322378]
 layout_mode = 0
 offset_left = 40.0
-offset_top = 40.0
+offset_top = 1554.0
 offset_right = 500.0
-offset_bottom = 560.0
+offset_bottom = 1914.0
 theme_override_constants/separation = 6
 
-[node name="LocalRounds" type="HBoxContainer" parent="LocalPanel"]
+[node name="LocalRounds" type="HBoxContainer" parent="LocalPanel" unique_id=1803457614]
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_constants/separation = 8
 
-[node name="LocalPip1" type="ColorRect" parent="LocalPanel/LocalRounds"]
+[node name="LocalPip1" type="ColorRect" parent="LocalPanel/LocalRounds" unique_id=1142340021]
 custom_minimum_size = Vector2(26, 26)
 layout_mode = 2
 color = Color(1, 1, 1, 0.2)
 
-[node name="LocalPip2" type="ColorRect" parent="LocalPanel/LocalRounds"]
+[node name="LocalPip2" type="ColorRect" parent="LocalPanel/LocalRounds" unique_id=323561003]
 custom_minimum_size = Vector2(26, 26)
 layout_mode = 2
 color = Color(1, 1, 1, 0.2)
 
-[node name="LocalName" type="Label" parent="LocalPanel"]
+[node name="LocalName" type="Label" parent="LocalPanel" unique_id=1491230245]
 layout_mode = 2
 theme_override_font_sizes/font_size = 40
 
-[node name="LocalChip" type="ColorRect" parent="LocalPanel"]
+[node name="LocalChip" type="ColorRect" parent="LocalPanel" unique_id=1182450729]
+visible = false
 custom_minimum_size = Vector2(90, 26)
 layout_mode = 2
 size_flags_horizontal = 0
 
-[node name="LocalAction" type="Label" parent="LocalPanel"]
+[node name="LocalAction" type="Label" parent="LocalPanel" unique_id=1435301242]
+visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 44
 
-[node name="LocalHpBg" type="ColorRect" parent="LocalPanel"]
+[node name="LocalHpBg" type="ColorRect" parent="LocalPanel" unique_id=207783077]
 custom_minimum_size = Vector2(320, 36)
 layout_mode = 2
+size_flags_horizontal = 0
 color = Color(0.1, 0.1, 0.12, 0.85)
 
-[node name="LocalHpGhost" type="ColorRect" parent="LocalPanel/LocalHpBg"]
+[node name="LocalHpGhost" type="ColorRect" parent="LocalPanel/LocalHpBg" unique_id=2087936812]
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 36.0
 color = Color(1, 1, 1, 0.35)
 
-[node name="LocalHpFill" type="ColorRect" parent="LocalPanel/LocalHpBg"]
+[node name="LocalHpFill" type="ColorRect" parent="LocalPanel/LocalHpBg" unique_id=1322638574]
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 36.0
 color = Color(0.9, 0.26, 0.29, 1)
 
-[node name="LocalTiltBg" type="ColorRect" parent="LocalPanel"]
+[node name="LocalTiltBg" type="ColorRect" parent="LocalPanel" unique_id=1342044063]
+visible = false
 custom_minimum_size = Vector2(320, 24)
 layout_mode = 2
+size_flags_horizontal = 0
 color = Color(1, 1, 1, 0.15)
 
-[node name="LocalTiltFill" type="ColorRect" parent="LocalPanel/LocalTiltBg"]
+[node name="LocalTiltFill" type="ColorRect" parent="LocalPanel/LocalTiltBg" unique_id=996318570]
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 24.0
 color = Color(0.9, 0.26, 0.29, 1)
 
-[node name="RemotePanel" type="VBoxContainer" parent="."]
+[node name="RemotePanel" type="VBoxContainer" parent="." unique_id=118086775]
 layout_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -500.0
-offset_top = 40.0
+offset_top = 350.0
 offset_right = -40.0
-offset_bottom = 560.0
+offset_bottom = 710.0
 theme_override_constants/separation = 6
 
-[node name="RemoteRounds" type="HBoxContainer" parent="RemotePanel"]
+[node name="RemoteRounds" type="HBoxContainer" parent="RemotePanel" unique_id=1706559681]
 layout_mode = 2
 size_flags_horizontal = 8
 theme_override_constants/separation = 8
 
-[node name="RemotePip1" type="ColorRect" parent="RemotePanel/RemoteRounds"]
+[node name="RemotePip1" type="ColorRect" parent="RemotePanel/RemoteRounds" unique_id=1416356707]
 custom_minimum_size = Vector2(26, 26)
 layout_mode = 2
 color = Color(1, 1, 1, 0.2)
 
-[node name="RemotePip2" type="ColorRect" parent="RemotePanel/RemoteRounds"]
+[node name="RemotePip2" type="ColorRect" parent="RemotePanel/RemoteRounds" unique_id=1233464402]
 custom_minimum_size = Vector2(26, 26)
 layout_mode = 2
 color = Color(1, 1, 1, 0.2)
 
-[node name="RemoteName" type="Label" parent="RemotePanel"]
+[node name="RemoteName" type="Label" parent="RemotePanel" unique_id=366034661]
 layout_mode = 2
 theme_override_font_sizes/font_size = 40
 horizontal_alignment = 2
 
-[node name="RemoteChip" type="ColorRect" parent="RemotePanel"]
+[node name="RemoteChip" type="ColorRect" parent="RemotePanel" unique_id=1481158606]
+visible = false
 custom_minimum_size = Vector2(90, 26)
 layout_mode = 2
 size_flags_horizontal = 8
 
-[node name="RemoteAction" type="Label" parent="RemotePanel"]
+[node name="RemoteAction" type="Label" parent="RemotePanel" unique_id=1656781731]
+visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 44
 horizontal_alignment = 2
 
-[node name="RemoteHpBg" type="ColorRect" parent="RemotePanel"]
+[node name="RemoteHpBg" type="ColorRect" parent="RemotePanel" unique_id=1698769953]
 custom_minimum_size = Vector2(320, 36)
 layout_mode = 2
+size_flags_horizontal = 8
 color = Color(0.1, 0.1, 0.12, 0.85)
 
-[node name="RemoteHpGhost" type="ColorRect" parent="RemotePanel/RemoteHpBg"]
+[node name="RemoteHpGhost" type="ColorRect" parent="RemotePanel/RemoteHpBg" unique_id=840160344]
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 36.0
 color = Color(1, 1, 1, 0.35)
 
-[node name="RemoteHpFill" type="ColorRect" parent="RemotePanel/RemoteHpBg"]
+[node name="RemoteHpFill" type="ColorRect" parent="RemotePanel/RemoteHpBg" unique_id=464534783]
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 36.0
 color = Color(0.25, 0.55, 0.95, 1)
 
-[node name="RemoteTiltBg" type="ColorRect" parent="RemotePanel"]
+[node name="RemoteTiltBg" type="ColorRect" parent="RemotePanel" unique_id=194808429]
+visible = false
 custom_minimum_size = Vector2(320, 24)
 layout_mode = 2
+size_flags_horizontal = 8
 color = Color(1, 1, 1, 0.15)
 
-[node name="RemoteTiltFill" type="ColorRect" parent="RemotePanel/RemoteTiltBg"]
+[node name="RemoteTiltFill" type="ColorRect" parent="RemotePanel/RemoteTiltBg" unique_id=2145586159]
 layout_mode = 0
 offset_right = 320.0
 offset_bottom = 24.0
 color = Color(0.25, 0.55, 0.95, 1)
 
-[node name="ExitButton" type="Button" parent="."]
+[node name="ExitButton" type="Button" parent="." unique_id=1002647765]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -90.0
-offset_top = 40.0
-offset_right = 90.0
-offset_bottom = 140.0
+offset_left = 62.0
+offset_top = 32.0
+offset_right = 242.0
+offset_bottom = 132.0
 grow_horizontal = 2
 theme_override_font_sizes/font_size = 36
-text = "EXIT"
+theme_override_styles/normal = SubResource("StyleBoxEmpty_pause")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_pause")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_pause")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_pause")
+text = "Exit"
 
-[node name="TimeLabel" type="Label" parent="."]
+[node name="TimeLabel" type="Label" parent="." unique_id=345378200]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -200.0
-offset_top = 150.0
+offset_top = 38.0
 offset_right = 200.0
-offset_bottom = 260.0
+offset_bottom = 148.0
 grow_horizontal = 2
 theme_override_font_sizes/font_size = 72
 text = "60"
 horizontal_alignment = 1
 
-[node name="ComboLabel" type="Label" parent="."]
+[node name="ComboLabel" type="Label" parent="." unique_id=1591446607]
 visible = false
 layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.5
-anchor_top = 0.32
 anchor_right = 0.5
-anchor_bottom = 0.32
 offset_left = -420.0
+offset_top = 170.0
 offset_right = 420.0
-offset_bottom = 140.0
+offset_bottom = 310.0
 grow_horizontal = 2
 theme_override_font_sizes/font_size = 88
 horizontal_alignment = 1
 
-[node name="StatusLabel" type="Label" parent="."]
+[node name="StatusLabel" type="Label" parent="." unique_id=1928135431]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -201,7 +217,7 @@ grow_vertical = 0
 theme_override_font_sizes/font_size = 40
 horizontal_alignment = 1
 
-[node name="Result" type="ColorRect" parent="."]
+[node name="Result" type="ColorRect" parent="." unique_id=1884215937]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -211,7 +227,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.72)
 
-[node name="Box" type="VBoxContainer" parent="Result"]
+[node name="Box" type="VBoxContainer" parent="Result" unique_id=1555199237]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -227,25 +243,25 @@ grow_vertical = 2
 theme_override_constants/separation = 40
 alignment = 1
 
-[node name="ResultLabel" type="Label" parent="Result/Box"]
+[node name="ResultLabel" type="Label" parent="Result/Box" unique_id=547590062]
 layout_mode = 2
 theme_override_font_sizes/font_size = 120
 text = "YOU WIN"
 horizontal_alignment = 1
 
-[node name="RematchButton" type="Button" parent="Result/Box"]
+[node name="RematchButton" type="Button" parent="Result/Box" unique_id=1746414138]
 custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
 theme_override_font_sizes/font_size = 56
 text = "REMATCH"
 
-[node name="ResultExitButton" type="Button" parent="Result/Box"]
+[node name="ResultExitButton" type="Button" parent="Result/Box" unique_id=345390050]
 custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 theme_override_font_sizes/font_size = 48
 text = "BACK TO MENU"
 
-[node name="ResultStatus" type="Label" parent="Result/Box"]
+[node name="ResultStatus" type="Label" parent="Result/Box" unique_id=1047054911]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 horizontal_alignment = 1
