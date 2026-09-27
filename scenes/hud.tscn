@@ -4,6 +4,13 @@
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pause"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_plate"]
+bg_color = Color(0.03, 0.04, 0.06, 0.32)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+
 [node name="Hud" type="Control" unique_id=100718732]
 layout_mode = 3
 anchors_preset = 15
@@ -13,6 +20,14 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_hud")
+
+[node name="LocalPlate" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 70.0
+offset_right = 516.0
+offset_bottom = 462.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_plate")
 
 [node name="LocalPanel" type="VBoxContainer" parent="." unique_id=2041322378]
 layout_mode = 0
@@ -39,6 +54,8 @@ color = Color(1, 1, 1, 0.2)
 
 [node name="LocalName" type="Label" parent="LocalPanel" unique_id=1491230245]
 layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.75)
+theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 40
 
 [node name="LocalChip" type="ColorRect" parent="LocalPanel" unique_id=1182450729]
@@ -50,6 +67,8 @@ size_flags_horizontal = 0
 [node name="LocalAction" type="Label" parent="LocalPanel" unique_id=1435301242]
 visible = false
 layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.75)
+theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 44
 
 [node name="LocalHpBg" type="ColorRect" parent="LocalPanel" unique_id=207783077]
@@ -83,6 +102,18 @@ offset_right = 320.0
 offset_bottom = 24.0
 color = Color(0.9, 0.26, 0.29, 1)
 
+[node name="RemotePlate" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -516.0
+offset_top = 70.0
+offset_right = -24.0
+offset_bottom = 462.0
+grow_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_plate")
+
 [node name="RemotePanel" type="VBoxContainer" parent="." unique_id=118086775]
 layout_mode = 1
 anchors_preset = 1
@@ -112,6 +143,8 @@ color = Color(1, 1, 1, 0.2)
 
 [node name="RemoteName" type="Label" parent="RemotePanel" unique_id=366034661]
 layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.75)
+theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 40
 horizontal_alignment = 2
 
@@ -124,6 +157,8 @@ size_flags_horizontal = 8
 [node name="RemoteAction" type="Label" parent="RemotePanel" unique_id=1656781731]
 visible = false
 layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.75)
+theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 44
 horizontal_alignment = 2
 
@@ -168,6 +203,8 @@ offset_top = -19.0
 offset_right = 556.0
 offset_bottom = 81.0
 grow_horizontal = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.75)
+theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 36
 theme_override_styles/normal = SubResource("StyleBoxEmpty_pause")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_pause")
@@ -185,6 +222,8 @@ offset_top = 68.0
 offset_right = 200.0
 offset_bottom = 178.0
 grow_horizontal = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.75)
+theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 72
 text = "60"
 horizontal_alignment = 1
@@ -200,6 +239,8 @@ offset_top = 170.0
 offset_right = 420.0
 offset_bottom = 310.0
 grow_horizontal = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.75)
+theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 88
 horizontal_alignment = 1
 
@@ -216,6 +257,8 @@ offset_right = 420.0
 offset_bottom = -50.0
 grow_horizontal = 2
 grow_vertical = 0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.75)
+theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 40
 horizontal_alignment = 1
 
