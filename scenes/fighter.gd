@@ -98,8 +98,8 @@ const JAB_CHAIN_COOLDOWN := 0.9
 const JAB_TIME := 0.2
 const PUNCH_TIME := 0.55
 const HURT_TIME := 0.35
-const BREATH_AMPLITUDE := 0.012
-const BREATH_SPEED := 2.4
+const BREATH_AMPLITUDE := 0.007
+const BREATH_SPEED := 4.8
 
 enum Action { IDLE, JAB, PUNCH, BLOCK, HURT, KO }
 
