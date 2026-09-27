@@ -17,9 +17,9 @@ script = ExtResource("1_hud")
 [node name="LocalPanel" type="VBoxContainer" parent="." unique_id=2041322378]
 layout_mode = 0
 offset_left = 40.0
-offset_top = 1554.0
+offset_top = 86.0
 offset_right = 500.0
-offset_bottom = 1914.0
+offset_bottom = 446.0
 theme_override_constants/separation = 6
 
 [node name="LocalRounds" type="HBoxContainer" parent="LocalPanel" unique_id=1803457614]
@@ -84,13 +84,15 @@ offset_bottom = 24.0
 color = Color(0.9, 0.26, 0.29, 1)
 
 [node name="RemotePanel" type="VBoxContainer" parent="." unique_id=118086775]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -500.0
-offset_top = 350.0
+offset_top = 86.0
 offset_right = -40.0
-offset_bottom = 710.0
+offset_bottom = 446.0
+grow_horizontal = 0
 theme_override_constants/separation = 6
 
 [node name="RemoteRounds" type="HBoxContainer" parent="RemotePanel" unique_id=1706559681]
@@ -161,10 +163,10 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = 62.0
-offset_top = 32.0
-offset_right = 242.0
-offset_bottom = 132.0
+offset_left = 376.0
+offset_top = -19.0
+offset_right = 556.0
+offset_bottom = 81.0
 grow_horizontal = 2
 theme_override_font_sizes/font_size = 36
 theme_override_styles/normal = SubResource("StyleBoxEmpty_pause")
@@ -179,9 +181,9 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -200.0
-offset_top = 38.0
+offset_top = 68.0
 offset_right = 200.0
-offset_bottom = 148.0
+offset_bottom = 178.0
 grow_horizontal = 2
 theme_override_font_sizes/font_size = 72
 text = "60"
