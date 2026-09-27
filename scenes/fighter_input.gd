@@ -33,9 +33,9 @@ func handle_event(event: InputEvent, half_width: float) -> void:
 
 
 static func keyboard_lean() -> float:
-	if Input.is_key_pressed(KEY_LEFT):
-		return 1.0
 	if Input.is_key_pressed(KEY_RIGHT):
+		return 1.0
+	if Input.is_key_pressed(KEY_LEFT):
 		return -1.0
 	return 0.0
 
