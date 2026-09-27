@@ -3,8 +3,6 @@ extends Control
 
 var _wipe: Wipe
 var _content: Control
-var _local_disc: Panel
-var _remote_disc: Panel
 var _local_head: Head
 var _remote_head: Head
 var _label: Label
@@ -23,12 +21,6 @@ func _ready() -> void:
 	_content.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_content)
-	_local_disc = Panel.new()
-	_local_disc.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_content.add_child(_local_disc)
-	_remote_disc = Panel.new()
-	_remote_disc.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_content.add_child(_remote_disc)
 	_local_head = Head.new()
 	_content.add_child(_local_head)
 	_remote_head = Head.new()
@@ -75,33 +67,18 @@ func play(covered: bool) -> void:
 
 
 func _apply_colors() -> void:
-	_wipe.setup(_local_color, _peer_color)
-	_style_disc(_local_disc, _peer_color)
-	_style_disc(_remote_disc, _local_color)
+	_wipe.setup(_peer_color, _local_color)
 	_local_head.apply_color(_local_color)
 	_remote_head.apply_color(_peer_color)
-
-
-func _style_disc(disc: Panel, color: Color) -> void:
-	var style := StyleBoxFlat.new()
-	style.bg_color = color
-	style.set_corner_radius_all(int(maxf(disc.size.x, disc.size.y) * 0.5))
-	disc.add_theme_stylebox_override("panel", style)
 
 
 func _layout() -> void:
 	var stage := _stage_size()
 	var head_size := minf(stage.x, stage.y) * 0.4
-	var local_center := Vector2(stage.x * 0.29, stage.y * 0.5)
-	var remote_center := Vector2(stage.x * 0.71, stage.y * 0.5)
-	_place(_local_disc, local_center, head_size)
-	_place(_remote_disc, remote_center, head_size)
-	_place(_local_head, local_center, head_size)
-	_place(_remote_head, remote_center, head_size)
+	_place(_local_head, Vector2(stage.x * 0.29, stage.y * 0.5), head_size)
+	_place(_remote_head, Vector2(stage.x * 0.71, stage.y * 0.5), head_size)
 	_label.position = Vector2(0.0, stage.y * 0.5 - 100.0)
 	_label.size = Vector2(stage.x, 200.0)
-	_style_disc(_local_disc, _peer_color)
-	_style_disc(_remote_disc, _local_color)
 
 
 func _stage_size() -> Vector2:
