@@ -30,6 +30,7 @@ var _selected := 0
 var _left_portrait: Head
 var _right_portrait: Head
 var _bobbing := false
+var _going := false
 
 
 func _ready() -> void:
@@ -137,7 +138,19 @@ func _refresh_peer_ready(value: bool) -> void:
 
 func _check_both_ready() -> void:
 	if Net.my_ready and Net.peer_ready:
-		Fx.goto("res://scenes/play_screen.tscn")
+		_start_match()
+
+
+func _start_match() -> void:
+	if _going:
+		return
+	_going = true
+	var wipe := Wipe.new()
+	wipe.setup(Net.my_color, Net.peer_color)
+	add_child(wipe)
+	await wipe.cover()
+	Ui.wipe_covered = true
+	get_tree().change_scene_to_file("res://scenes/play_screen.tscn")
 
 
 func _on_peer_left() -> void:

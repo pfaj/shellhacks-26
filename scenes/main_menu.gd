@@ -41,11 +41,13 @@ func _on_rejoin_pressed() -> void:
 
 func _on_play_online_pressed() -> void:
 	Net.local_mode = false
+	Ui.wipe_covered = false
 	Fx.goto("res://scenes/connect_screen.tscn")
 
 
 func _on_practice_pressed() -> void:
 	Net.local_mode = true
+	Ui.wipe_covered = false
 	Net.reset_ready()
 	Net.local_rounds = 0
 	Net.remote_rounds = 0
