@@ -106,6 +106,13 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 44
 text = "PRACTICE VS BOT"
 
+[node name="SpectateButton" type="Button" parent="Margin/VBox"]
+custom_minimum_size = Vector2(0, 110)
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "SPECTATE"
+
 [connection signal="pressed" from="Margin/VBox/RejoinBanner" to="." method="_on_rejoin_pressed"]
 [connection signal="pressed" from="Margin/VBox/PlayButton" to="." method="_on_play_online_pressed"]
 [connection signal="pressed" from="Margin/VBox/PracticeButton" to="." method="_on_practice_pressed"]
+[connection signal="pressed" from="Margin/VBox/SpectateButton" to="." method="_on_spectate_pressed"]

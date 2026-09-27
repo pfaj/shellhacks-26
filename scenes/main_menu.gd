@@ -10,6 +10,7 @@ extends Control
 @onready var _hint: Label = $Margin/VBox/HintLabel
 @onready var _play: Button = $Margin/VBox/PlayButton
 @onready var _practice: Button = $Margin/VBox/PracticeButton
+@onready var _spectate: Button = $Margin/VBox/SpectateButton
 
 
 func _ready() -> void:
@@ -25,6 +26,11 @@ func _ready() -> void:
 	Ui.style_button(_play, Ui.ACCENT)
 	Ui.style_button(_practice, Color(0, 0, 0, 0), Ui.ACCENT)
 	Ui.style_button(_banner, Color(0, 0, 0, 0), Ui.ACCENT)
+	Ui.style_button(_spectate, Color(0, 0, 0, 0), Ui.ACCENT)
+	if _auto_spectate():
+		Net.spectate_auto = true
+		Fx.goto("res://scenes/spectate_screen.tscn")
+		return
 	_play_intro()
 
 
@@ -50,9 +56,20 @@ func _on_practice_pressed() -> void:
 	Fx.goto("res://scenes/play_screen.tscn")
 
 
+func _on_spectate_pressed() -> void:
+	Net.spectate_auto = false
+	Fx.goto("res://scenes/spectate_screen.tscn")
+
+
+func _auto_spectate() -> bool:
+	if not OS.has_feature("web"):
+		return false
+	return str(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('spectate')")) == "auto"
+
+
 func _play_intro() -> void:
 	await get_tree().process_frame
-	var items: Array[Control] = [_identity, _hint, _play, _practice]
+	var items: Array[Control] = [_identity, _hint, _play, _practice, _spectate]
 	if _banner.visible:
 		items.insert(0, _banner)
 	_fade_slide(_logo, 0.0)

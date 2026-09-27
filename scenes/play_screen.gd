@@ -4,11 +4,6 @@ const NET_INTERVAL := 1.0 / 20.0
 const TILT_ENTER_DEGREES := 18.0
 const TILT_EXIT_DEGREES := 10.0
 const TILT_SMOOTHING := 22.0
-const LOCAL_FILL := 0.84
-const PEER_SCALE := 0.82
-const LOCAL_BOTTOM_CUT := 0.05
-const REMOTE_GAP := 0.38
-const CONTENT_WIDTH_RATIO := 0.643
 const MAX_HP := 100
 const JAB_DAMAGE := 5
 const PUNCH_DAMAGE := 12
@@ -23,8 +18,6 @@ const SHAKE_TIME := 0.18
 const SHAKE_STRENGTH := 12.0
 const HIT_STOP_TIME := 0.07
 const HIT_STOP_SCALE := 0.05
-const BG_VERTICAL := "res://assets/branding/Shellhacks Background_BG Vertical.svg"
-const BG_HORIZONTAL := "res://assets/branding/Shellhacks Background_BG Horizontal.svg"
 const COUNTDOWN_STEPS: Array[String] = ["3", "2", "1", "FIGHT!"]
 const COUNTDOWN_STEP_TIME := 0.8
 const COUNTDOWN_FIGHT_TIME := 0.9
@@ -134,15 +127,8 @@ func _layout_stage() -> void:
 	var wide := size.x > size.y
 	if wide != _background_wide or _background.texture == null:
 		_background_wide = wide
-		_background.texture = load(BG_HORIZONTAL if wide else BG_VERTICAL)
-	var center := size.x * 0.5
-	var local_art := minf(size.y * LOCAL_FILL, size.x * 0.98 / CONTENT_WIDTH_RATIO)
-	_local.set_art_height(local_art)
-	var local_y := size.y + local_art * LOCAL_BOTTOM_CUT
-	_local.place(Vector2(center, local_y))
-	var remote_art := local_art * PEER_SCALE
-	_remote.set_art_height(remote_art)
-	_remote.place(Vector2(center, local_y - local_art * REMOTE_GAP))
+		_background.texture = load(Arena.background_path(wide))
+	Arena.layout(size, _local, _remote)
 
 
 func _update_tilt(delta: float) -> void:
@@ -380,6 +366,7 @@ func _finish_match(result: Result) -> void:
 	match result:
 		Result.WIN:
 			Net.local_rounds += 1
+			Net.send({"t": Protocol.ROUND_END})
 		Result.LOSE:
 			Net.remote_rounds += 1
 		Result.DRAW:

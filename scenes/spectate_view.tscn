@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/spectate_view.gd" id="1_view"]
+[ext_resource type="PackedScene" path="res://scenes/fighter.tscn" id="2_fighter"]
+[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="3_hud"]
+[ext_resource type="Texture2D" path="res://assets/branding/Shellhacks Background_BG Vertical.svg" id="4_bg"]
+
+[node name="SpectateView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_view")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("4_bg")
+texture_filter = 4
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Fighters" type="Node2D" parent="."]
+
+[node name="RemoteFighter" parent="Fighters" instance=ExtResource("2_fighter")]
+position = Vector2(730, 1300)
+
+[node name="LocalFighter" parent="Fighters" instance=ExtResource("2_fighter")]
+position = Vector2(360, 1560)
+
+[node name="Hud" parent="." instance=ExtResource("3_hud")]
+layout_mode = 1
