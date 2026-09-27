@@ -4,8 +4,11 @@ const NET_INTERVAL := 1.0 / 20.0
 const TILT_ENTER_DEGREES := 18.0
 const TILT_EXIT_DEGREES := 10.0
 const TILT_SMOOTHING := 22.0
-const LOCAL_Y := 0.95
-const REMOTE_Y := 0.70
+const LOCAL_FILL := 0.84
+const PEER_SCALE := 0.82
+const LOCAL_BOTTOM_CUT := 0.05
+const REMOTE_GAP := 0.38
+const CONTENT_WIDTH_RATIO := 0.643
 const MAX_HP := 100
 const JAB_DAMAGE := 5
 const PUNCH_DAMAGE := 12
@@ -116,11 +119,14 @@ func _layout_stage() -> void:
 	if wide != _background_wide or _background.texture == null:
 		_background_wide = wide
 		_background.texture = load(BG_HORIZONTAL if wide else BG_VERTICAL)
-	var design_height := size.x * (1920.0 / 1080.0)
-	var stage_height := minf(size.y, design_height)
 	var center := size.x * 0.5
-	_local.place(Vector2(center, stage_height * LOCAL_Y))
-	_remote.place(Vector2(center, stage_height * REMOTE_Y))
+	var local_art := minf(size.y * LOCAL_FILL, size.x * 0.98 / CONTENT_WIDTH_RATIO)
+	_local.set_art_height(local_art)
+	var local_y := size.y + local_art * LOCAL_BOTTOM_CUT
+	_local.place(Vector2(center, local_y))
+	var remote_art := local_art * PEER_SCALE
+	_remote.set_art_height(remote_art)
+	_remote.place(Vector2(center, local_y - local_art * REMOTE_GAP))
 
 
 func _update_tilt(delta: float) -> void:
