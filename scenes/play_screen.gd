@@ -264,8 +264,8 @@ func _apply_local_damage(damage: int, blocked: bool, kind: String) -> void:
 	if damage <= 0:
 		return
 	_local_hp = maxi(_local_hp - damage, 0)
-	_hud.show_damage(_local, damage, blocked)
-	_hud.show_hit_marker(_local, blocked)
+	_hud.show_damage(_local, damage, blocked, true)
+	_hud.flash_hit(_local)
 	if blocked:
 		_local.block_hit()
 	else:
@@ -285,8 +285,8 @@ func _apply_remote_damage(damage: int, blocked: bool, kind: String) -> void:
 	if damage <= 0:
 		return
 	_remote_hp = maxi(_remote_hp - damage, 0)
-	_hud.show_damage(_remote, damage, blocked)
-	_hud.show_hit_marker(_remote, blocked)
+	_hud.show_damage(_remote, damage, blocked, false)
+	_hud.flash_hit(_remote)
 	if blocked:
 		_remote.block_hit()
 	else:

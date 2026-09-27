@@ -169,13 +169,14 @@ func disable_rematch() -> void:
 	_rematch_button.disabled = true
 
 
-func show_damage(victim: Node2D, damage: int, blocked: bool) -> void:
+func show_damage(victim: Node2D, damage: int, blocked: bool, local: bool) -> void:
 	if damage <= 0 or victim == null:
 		return
 	var heavy := damage >= PUNCH_DAMAGE
 	var font_size := 44 if blocked else (76 if heavy else 58)
 	var color := Color(0.85, 0.85, 0.9) if blocked else (Color(1.0, 0.45, 0.2) if heavy else Color(1.0, 0.9, 0.35))
-	show_floating_text(victim.position + Vector2(0, -700), str(damage), color, font_size)
+	var side_x := 150.0 if local else size.x - 150.0
+	show_floating_text(Vector2(side_x, victim.position.y - 700.0), str(damage), color, font_size)
 
 
 func show_floating_text(origin: Vector2, text: String, color: Color, font_size: int) -> void:
@@ -201,29 +202,9 @@ func show_floating_text(origin: Vector2, text: String, color: Color, font_size: 
 	tween.chain().tween_callback(label.queue_free)
 
 
-func show_hit_marker(victim: Node2D, blocked: bool) -> void:
-	if _world == null or victim == null:
+func flash_hit(victim: Node2D) -> void:
+	if victim == null:
 		return
-	var marker := Node2D.new()
-	marker.position = victim.position + Vector2(0, -300)
-	var color := Color(0.65, 0.9, 1.0) if blocked else Color(1.0, 0.95, 0.5)
-	var length := 64.0 if blocked else 92.0
-	for i in 4:
-		var pivot := Node2D.new()
-		pivot.rotation = PI * 0.25 + i * PI * 0.5
-		var bar := ColorRect.new()
-		bar.color = color
-		bar.size = Vector2(length, 12.0)
-		bar.position = Vector2(-length * 0.5, -6.0)
-		pivot.add_child(bar)
-		marker.add_child(pivot)
-	marker.scale = Vector2(0.4, 0.4)
-	_world.add_child(marker)
-	var tween := create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(marker, "scale", Vector2(1.6, 1.6), 0.18)
-	tween.tween_property(marker, "modulate:a", 0.0, 0.18).set_delay(0.06)
-	tween.finished.connect(marker.queue_free)
 	victim.modulate = Color(1.7, 1.6, 1.6)
 	create_tween().tween_property(victim, "modulate", Color.WHITE, 0.15)
 
