@@ -302,30 +302,56 @@ function sockemHideTextInput() {
 })();
 
 (function () {
-	function setHidden(hidden) {
-		if (hidden) {
-			if (window.sockemPauseAudio) {
-				window.sockemPauseAudio();
-			}
-		} else if (window.sockemResumeAudio) {
-			window.sockemResumeAudio();
+	var OriginalAudioContext = window.AudioContext || window.webkitAudioContext;
+	if (!OriginalAudioContext) {
+		return;
+	}
+	var contexts = [];
+	function WrappedAudioContext(options) {
+		var ctx = new OriginalAudioContext(options);
+		contexts.push(ctx);
+		return ctx;
+	}
+	WrappedAudioContext.prototype = OriginalAudioContext.prototype;
+	window.AudioContext = WrappedAudioContext;
+	window.webkitAudioContext = WrappedAudioContext;
+
+	function suspendAudio() {
+		for (var i = 0; i < contexts.length; i++) {
+			try {
+				contexts[i].suspend();
+			} catch (err) {}
+		}
+	}
+	function resumeAudio() {
+		for (var i = 0; i < contexts.length; i++) {
+			try {
+				contexts[i].resume();
+			} catch (err) {}
 		}
 	}
 	document.addEventListener('visibilitychange', function () {
-		setHidden(document.hidden);
+		if (document.hidden) {
+			suspendAudio();
+		} else {
+			resumeAudio();
+		}
 	}, true);
-	window.addEventListener('pagehide', function () {
-		setHidden(true);
+	document.addEventListener('freeze', suspendAudio, true);
+	window.addEventListener('pagehide', suspendAudio, true);
+	window.addEventListener('pageshow', resumeAudio, true);
+	window.addEventListener('blur', suspendAudio, false);
+	window.addEventListener('focus', resumeAudio, false);
+	document.addEventListener('touchend', function () {
+		if (!document.hidden) {
+			resumeAudio();
+		}
 	}, true);
-	window.addEventListener('pageshow', function () {
-		setHidden(false);
+	document.addEventListener('click', function () {
+		if (!document.hidden) {
+			resumeAudio();
+		}
 	}, true);
-	window.addEventListener('blur', function () {
-		setHidden(true);
-	}, false);
-	window.addEventListener('focus', function () {
-		setHidden(false);
-	}, false);
 })();
 		</script>
 		$GODOT_HEAD_INCLUDE
