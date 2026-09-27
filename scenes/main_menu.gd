@@ -3,6 +3,7 @@ extends Control
 
 func _ready() -> void:
 	Sfx.play_music("menu")
+	$MarginContainer/VBoxContainer/Logo.apply_color(Color("2f81f7"))
 	$MarginContainer/VBoxContainer/WinsLabel.text = "LIFETIME  %dW - %dL" % [Net.my_wins, Net.my_losses]
 	var rejoin: Button = $MarginContainer/VBoxContainer/RejoinButton
 	rejoin.visible = not Net.last_room.is_empty() and Net.had_match

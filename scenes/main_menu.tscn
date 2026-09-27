@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dvvu06i3v6irh"]
 
 [ext_resource type="Script" uid="uid://chgisq7gnej3k" path="res://scenes/main_menu.gd" id="1_l6cm7"]
-[ext_resource type="Texture2D" uid="uid://c2lwnrtygxmkr" path="res://assets/branding/logo.jpg" id="2_bqqt6"]
+[ext_resource type="Script" path="res://scenes/head.gd" id="2_head"]
 
 [node name="Node2D" type="Control" unique_id=1384207152]
 layout_mode = 3
@@ -30,11 +30,10 @@ size_flags_vertical = 4
 theme_override_constants/separation = 20
 
 [node name="Logo" type="TextureRect" parent="MarginContainer/VBoxContainer" unique_id=926197993]
-visible = false
+custom_minimum_size = Vector2(0, 420)
 layout_mode = 2
 size_flags_vertical = 4
-texture = ExtResource("2_bqqt6")
-expand_mode = 5
+script = ExtResource("2_head")
 
 [node name="WinsLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=771204418]
 layout_mode = 2
