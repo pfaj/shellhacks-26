@@ -187,6 +187,119 @@ function sockemQRPng(url, size) {
 	}
 	return canvas.toDataURL('image/png');
 }
+
+window.sockemTextChanged = null;
+var sockemInputHotspot = null;
+var sockemTextInput = null;
+
+function sockemTextInputElement() {
+	if (!sockemTextInput) {
+		var el = document.createElement('input');
+		el.type = 'text';
+		el.autocomplete = 'off';
+		el.autocorrect = 'off';
+		el.autocapitalize = 'off';
+		el.spellcheck = false;
+		el.setAttribute('enterkeyhint', 'done');
+		el.style.position = 'fixed';
+		el.style.zIndex = '30';
+		el.style.boxSizing = 'border-box';
+		el.style.textAlign = 'center';
+		el.style.fontFamily = 'system-ui, sans-serif';
+		el.style.border = '3px solid #ffffff';
+		el.style.borderRadius = '14px';
+		el.style.background = '#10141d';
+		el.style.color = '#ffffff';
+		el.style.display = 'none';
+		el.style.padding = '0';
+		el.addEventListener('input', function () {
+			if (window.sockemTextChanged) {
+				window.sockemTextChanged(el.value);
+			}
+		});
+		el.addEventListener('keydown', function (event) {
+			if (event.key === 'Enter') {
+				sockemHideTextInput();
+			}
+		});
+		document.body.appendChild(el);
+		sockemTextInput = el;
+	}
+	return sockemTextInput;
+}
+
+function sockemRegisterTextInput(gx, gy, gw, gh, vw, vh, maxLength, value) {
+	if (!('ontouchstart' in window)) {
+		return;
+	}
+	var canvas = document.getElementById('canvas');
+	var r = canvas.getBoundingClientRect();
+	var sx = r.width / vw;
+	var sy = r.height / vh;
+	sockemInputHotspot = {
+		x: r.left + gx * sx,
+		y: r.top + gy * sy,
+		w: gw * sx,
+		h: gh * sy,
+		maxLength: maxLength || 32,
+		value: value || ''
+	};
+}
+
+function sockemUnregisterTextInput() {
+	sockemInputHotspot = null;
+	sockemHideTextInput();
+}
+
+function sockemShowTextInput() {
+	var el = sockemTextInputElement();
+	var h = sockemInputHotspot;
+	if (!h) {
+		return;
+	}
+	el.maxLength = h.maxLength;
+	el.value = h.value;
+	el.style.left = h.x + 'px';
+	el.style.top = h.y + 'px';
+	el.style.width = h.w + 'px';
+	el.style.height = h.h + 'px';
+	el.style.fontSize = Math.max(16, h.h * 0.5) + 'px';
+	el.style.display = 'block';
+	el.focus();
+	el.setSelectionRange(el.value.length, el.value.length);
+}
+
+function sockemHideTextInput() {
+	if (sockemTextInput) {
+		sockemTextInput.blur();
+		sockemTextInput.style.display = 'none';
+	}
+}
+
+(function () {
+	function inside(x, y) {
+		if (!sockemInputHotspot) {
+			return false;
+		}
+		var h = sockemInputHotspot;
+		return x >= h.x && x <= h.x + h.w && y >= h.y && y <= h.y + h.h;
+	}
+	window.addEventListener('touchend', function (event) {
+		var touches = event.changedTouches || [];
+		for (var i = 0; i < touches.length; i++) {
+			if (inside(touches[i].clientX, touches[i].clientY)) {
+				event.preventDefault();
+				sockemShowTextInput();
+				return;
+			}
+		}
+	}, true);
+	window.addEventListener('mouseup', function (event) {
+		if (inside(event.clientX, event.clientY)) {
+			sockemShowTextInput();
+		}
+	}, true);
+})();
 		</script>
 		$GODOT_HEAD_INCLUDE
 	</head>

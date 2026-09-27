@@ -23,6 +23,9 @@ func _ready() -> void:
 	if not room.is_empty():
 		_code_input.text = room
 		_on_join_pressed()
+	if OS.has_feature("web"):
+		WebTextInput.attach(_code_input)
+		WebTextInput.refresh.call_deferred()
 
 
 func _on_create_pressed() -> void:

@@ -50,6 +50,9 @@ func _ready() -> void:
 		_on_room_ready()
 	else:
 		_show_waiting()
+	if OS.has_feature("web"):
+		WebTextInput.attach(_name_input)
+		WebTextInput.refresh.call_deferred()
 
 
 func _show_waiting() -> void:
