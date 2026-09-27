@@ -70,6 +70,11 @@ func stop_music() -> void:
 		player.stop()
 
 
+func stop_sfx() -> void:
+	for player in _players:
+		player.stop()
+
+
 func _configure_loop(stream: AudioStream) -> void:
 	if stream is AudioStreamOggVorbis:
 		stream.loop = true

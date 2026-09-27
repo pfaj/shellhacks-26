@@ -29,6 +29,10 @@ func _ready() -> void:
 	_timer.start()
 
 
+func _exit_tree() -> void:
+	Sfx.stop_sfx()
+
+
 func _on_peer_profile(peer_name: String, peer_color: Color) -> void:
 	_right_name.text = peer_name
 	_right_color.color = peer_color
@@ -39,6 +43,7 @@ func _on_peer_left() -> void:
 		return
 	_running = false
 	_timer.stop()
+	Sfx.stop_sfx()
 	_countdown.text = ""
 	_status.text = "Opponent left the match"
 

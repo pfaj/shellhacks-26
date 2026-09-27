@@ -78,6 +78,10 @@ func _ready() -> void:
 		add_child(bot)
 
 
+func _exit_tree() -> void:
+	Sfx.stop_sfx()
+
+
 func _process(delta: float) -> void:
 	_update_shake(delta)
 	_hud.set_bars(_local_hp, _remote_hp, _move, _remote_move)
