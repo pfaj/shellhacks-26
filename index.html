@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<title>Shellhacks 2026</title>
+		<style>
+html, body, #canvas {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+body {
+	color: white;
+	background-color: black;
+	overflow: hidden;
+	touch-action: none;
+}
+
+#canvas {
+	display: block;
+}
+
+#canvas:focus {
+	outline: none;
+}
+
+#status, #status-splash, #status-progress {
+	position: absolute;
+	left: 0;
+	right: 0;
+}
+
+#status, #status-splash {
+	top: 0;
+	bottom: 0;
+}
+
+#status {
+	background-color: #000000;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	visibility: hidden;
+	opacity: 1;
+}
+
+#status-splash {
+	max-height: 100%;
+	max-width: 100%;
+	margin: auto;
+}
+
+#status-splash.show-image--false {
+	display: none;
+}
+
+#status-splash.fullsize--true {
+	height: 100%;
+	width: 100%;
+	object-fit: contain;
+}
+
+#status-splash.use-filter--false {
+	image-rendering: pixelated;
+}
+
+#status-progress, #status-notice {
+	display: none;
+}
+
+#status-progress {
+	bottom: 10%;
+	width: 60%;
+	height: 14px;
+	border: 0;
+	border-radius: 7px;
+	overflow: hidden;
+	accent-color: #2f81f7;
+	margin: 0 auto;
+}
+
+#status-progress::-webkit-progress-bar {
+	background-color: rgba(255, 255, 255, .12);
+	border-radius: 7px;
+}
+
+#status-progress::-webkit-progress-value {
+	background: linear-gradient(90deg, #2f81f7, #6fb1ff);
+	border-radius: 7px;
+}
+
+#status-progress::-moz-progress-bar {
+	background: linear-gradient(90deg, #2f81f7, #6fb1ff);
+	border-radius: 7px;
+}
+
+#clanker-boot-title {
+	font-family: system-ui, -apple-system, sans-serif;
+	font-size: 40px;
+	font-weight: 800;
+	letter-spacing: 6px;
+	margin-bottom: 16px;
+	padding: 0 16px;
+	text-align: center;
+	text-shadow: 0 0 24px rgba(47, 129, 247, .75);
+	animation: clanker-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes clanker-pulse {
+	0%, 100% { opacity: .78; letter-spacing: 6px; }
+	50% { opacity: 1; letter-spacing: 7px; }
+}
+
+#clanker-boot-hint {
+	font-family: system-ui, -apple-system, sans-serif;
+	font-size: 16px;
+	opacity: .55;
+	margin-bottom: 28px;
+	animation: clanker-fade 2.4s ease-in-out infinite;
+}
+
+@keyframes clanker-fade {
+	0%, 100% { opacity: .35; }
+	50% { opacity: .7; }
+}
+
+#status-notice {
+	background-color: #5b3943;
+	border-radius: 0.5rem;
+	border: 1px solid #9b3943;
+	color: #e0e0e0;
+	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
+	line-height: 1.3;
+	margin: 0 2rem;
+	overflow: hidden;
+	padding: 1rem;
+	text-align: center;
+	z-index: 1;
+}
+		</style>
+		<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+		<script>
+window.clankerTilt = { ready: false, started: false, permission: 'unknown', error: '', alpha: 0, beta: 0, gamma: 0 };
+
+function clankerOrientation(e) {
+	var t = window.clankerTilt;
+	t.alpha = e.alpha || 0;
+	t.beta = e.beta || 0;
+	t.gamma = e.gamma || 0;
+	t.ready = true;
+}
+
+function clankerStartTilt() {
+	if (window.clankerTilt.started) {
+		return;
+	}
+	window.clankerTilt.started = true;
+	if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+		DeviceOrientationEvent.requestPermission().then(function (r) {
+			if (r === 'granted') {
+				window.addEventListener('deviceorientation', clankerOrientation, true);
+				window.clankerTilt.permission = 'granted';
+			} else {
+				window.clankerTilt.permission = 'denied';
+				window.clankerTilt.error = 'motion permission denied';
+			}
+		}).catch(function (err) {
+			window.clankerTilt.permission = 'error';
+			window.clankerTilt.error = String(err);
+		});
+	} else {
+		window.addEventListener('deviceorientation', clankerOrientation, true);
+		window.clankerTilt.permission = 'granted';
+	}
+}
+
+(function () {
+	function requestOnce() {
+		window.removeEventListener('touchend', requestOnce, true);
+		window.removeEventListener('click', requestOnce, true);
+		clankerStartTilt();
+	}
+	window.addEventListener('touchend', requestOnce, true);
+	window.addEventListener('click', requestOnce, true);
+})();
+
+function clankerGetRoom() {
+	var params = new URLSearchParams(window.location.search);
+	var room = (params.get('room') || '').trim().toUpperCase();
+	return /^[A-Z0-9]{4,8}$/.test(room) ? room : '';
+}
+
+function clankerQRPng(url, size) {
+	if (typeof qrcode === 'undefined') {
+		return '';
+	}
+	var q = qrcode(0, 'M');
+	q.addData(url);
+	q.make();
+	var count = q.getModuleCount();
+	var quiet = 4;
+	var scale = Math.max(2, Math.floor((size || 512) / (count + quiet * 2)));
+	var px = (count + quiet * 2) * scale;
+	var canvas = document.createElement('canvas');
+	canvas.width = px;
+	canvas.height = px;
+	var ctx = canvas.getContext('2d');
+	ctx.fillStyle = '#ffffff';
+	ctx.fillRect(0, 0, px, px);
+	ctx.fillStyle = '#000000';
+	for (var r = 0; r < count; r++) {
+		for (var c = 0; c < count; c++) {
+			if (q.isDark(r, c)) {
+				ctx.fillRect((c + quiet) * scale, (r + quiet) * scale, scale, scale);
+			}
+		}
+	}
+	return canvas.toDataURL('image/png');
+}
+
+window.clankerTextChanged = null;
+var clankerInputHotspot = null;
+var clankerTextInput = null;
+
+function clankerTouchCapable() {
+	return ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+}
+
+function clankerHotspotRect() {
+	if (!clankerInputHotspot) {
+		return null;
+	}
+	var canvas = document.getElementById('canvas');
+	if (!canvas || clankerInputHotspot.vw <= 0 || clankerInputHotspot.vh <= 0) {
+		return null;
+	}
+	var r = canvas.getBoundingClientRect();
+	var h = clankerInputHotspot;
+	var sx = r.width / h.vw;
+	var sy = r.height / h.vh;
+	return {
+		x: r.left + h.gx * sx,
+		y: r.top + h.gy * sy,
+		w: h.gw * sx,
+		h: h.gh * sy
+	};
+}
+
+function clankerTextInputElement() {
+	if (!clankerTextInput) {
+		var el = document.createElement('input');
+		el.type = 'text';
+		el.autocomplete = 'off';
+		el.autocorrect = 'off';
+		el.autocapitalize = 'off';
+		el.spellcheck = false;
+		el.setAttribute('enterkeyhint', 'done');
+		el.style.position = 'fixed';
+		el.style.zIndex = '30';
+		el.style.boxSizing = 'border-box';
+		el.style.textAlign = 'center';
+		el.style.fontFamily = 'system-ui, sans-serif';
+		el.style.border = '3px solid #ffffff';
+		el.style.borderRadius = '14px';
+		el.style.background = '#10141d';
+		el.style.color = '#ffffff';
+		el.style.display = 'none';
+		el.style.padding = '0';
+		el.addEventListener('input', function () {
+			if (window.clankerTextChanged) {
+				window.clankerTextChanged(el.value);
+			}
+		});
+		el.addEventListener('keydown', function (event) {
+			if (event.key === 'Enter') {
+				clankerHideTextInput();
+			}
+		});
+		el.addEventListener('blur', function () {
+			el.style.display = 'none';
+		});
+		document.body.appendChild(el);
+		clankerTextInput = el;
+	}
+	return clankerTextInput;
+}
+
+function clankerRegisterTextInput(gx, gy, gw, gh, vw, vh, maxLength, value) {
+	if (!clankerTouchCapable()) {
+		return;
+	}
+	clankerInputHotspot = {
+		gx: gx,
+		gy: gy,
+		gw: gw,
+		gh: gh,
+		vw: vw,
+		vh: vh,
+		maxLength: maxLength || 32,
+		value: value || ''
+	};
+}
+
+function clankerUnregisterTextInput() {
+	clankerInputHotspot = null;
+	clankerHideTextInput();
+}
+
+function clankerPositionTextInput() {
+	var rect = clankerHotspotRect();
+	if (!rect) {
+		return null;
+	}
+	var el = clankerTextInputElement();
+	el.maxLength = clankerInputHotspot.maxLength;
+	el.value = clankerInputHotspot.value;
+	el.style.left = rect.x + 'px';
+	el.style.top = rect.y + 'px';
+	el.style.width = rect.w + 'px';
+	el.style.height = rect.h + 'px';
+	el.style.fontSize = Math.max(16, rect.h * 0.5) + 'px';
+	return el;
+}
+
+function clankerShowTextInput() {
+	var el = clankerPositionTextInput();
+	if (!el) {
+		return;
+	}
+	el.style.display = 'block';
+	el.removeAttribute('readonly');
+	clankerFocusTextInput(el);
+}
+
+function clankerFocusTextInput(el) {
+	try {
+		el.focus({ preventScroll: true });
+	} catch (err) {
+		el.focus();
+	}
+	if (document.activeElement !== el) {
+		requestAnimationFrame(function () {
+			try {
+				el.focus({ preventScroll: true });
+			} catch (err) {
+				el.focus();
+			}
+		});
+	}
+	try {
+		el.setSelectionRange(el.value.length, el.value.length);
+	} catch (err) {}
+}
+
+function clankerHideTextInput() {
+	if (clankerTextInput) {
+		clankerTextInput.blur();
+		clankerTextInput.style.display = 'none';
+	}
+}
+
+(function () {
+	function inside(x, y) {
+		var rect = clankerHotspotRect();
+		return !!rect && x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h;
+	}
+	window.addEventListener('touchstart', function (event) {
+		var touches = event.changedTouches || [];
+		for (var i = 0; i < touches.length; i++) {
+			if (inside(touches[i].clientX, touches[i].clientY)) {
+				var el = clankerPositionTextInput();
+				if (el) {
+					el.style.display = 'block';
+				}
+				return;
+			}
+		}
+	}, true);
+	window.addEventListener('touchend', function (event) {
+		var touches = event.changedTouches || [];
+		for (var i = 0; i < touches.length; i++) {
+			if (inside(touches[i].clientX, touches[i].clientY)) {
+				clankerShowTextInput();
+				event.preventDefault();
+				return;
+			}
+		}
+	}, true);
+	window.addEventListener('mouseup', function (event) {
+		if (inside(event.clientX, event.clientY)) {
+			clankerShowTextInput();
+		}
+	}, true);
+})();
+
+(function () {
+	var OriginalAudioContext = window.AudioContext || window.webkitAudioContext;
+	if (!OriginalAudioContext) {
+		return;
+	}
+	var contexts = [];
+	function WrappedAudioContext(options) {
+		var ctx = new OriginalAudioContext(options);
+		contexts.push(ctx);
+		return ctx;
+	}
+	WrappedAudioContext.prototype = OriginalAudioContext.prototype;
+	window.AudioContext = WrappedAudioContext;
+	window.webkitAudioContext = WrappedAudioContext;
+
+	function suspendAudio() {
+		for (var i = 0; i < contexts.length; i++) {
+			try {
+				contexts[i].suspend();
+			} catch (err) {}
+		}
+	}
+	function resumeAudio() {
+		for (var i = 0; i < contexts.length; i++) {
+			try {
+				contexts[i].resume();
+			} catch (err) {}
+		}
+	}
+	document.addEventListener('visibilitychange', function () {
+		if (document.hidden) {
+			suspendAudio();
+		} else {
+			resumeAudio();
+		}
+	}, true);
+	document.addEventListener('freeze', suspendAudio, true);
+	window.addEventListener('pagehide', suspendAudio, true);
+	window.addEventListener('pageshow', resumeAudio, true);
+	window.addEventListener('blur', suspendAudio, false);
+	window.addEventListener('focus', resumeAudio, false);
+	document.addEventListener('touchend', function () {
+		if (!document.hidden) {
+			resumeAudio();
+		}
+	}, true);
+	document.addEventListener('click', function () {
+		if (!document.hidden) {
+			resumeAudio();
+		}
+	}, true);
+})();
+		</script>
+		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+
+	</head>
+	<body>
+		<canvas id="canvas">
+			Your browser does not support the canvas tag.
+		</canvas>
+
+		<noscript>
+			Your browser does not support JavaScript.
+		</noscript>
+
+		<div id="status">
+			<div id="clanker-boot-title">CLANKER CLASH</div>
+			<div id="clanker-boot-hint">First tap will ask for motion access - allow it for tilt controls</div>
+			<img id="status-splash" class="show-image--false fullsize--true use-filter--true" src="index.png" alt="">
+			<progress id="status-progress"></progress>
+			<div id="status-notice"></div>
+		</div>
+
+		<script src="index.js"></script>
+		<script>
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":4,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":true,"fileSizes":{"index.pck":9676376,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":3};
+const GODOT_THREADS_ENABLED = false;
+const engine = new Engine(GODOT_CONFIG);
+
+(function () {
+	const statusOverlay = document.getElementById('status');
+	const statusProgress = document.getElementById('status-progress');
+	const statusNotice = document.getElementById('status-notice');
+
+	let initializing = true;
+	let statusMode = '';
+
+	function setStatusMode(mode) {
+		if (statusMode === mode || !initializing) {
+			return;
+		}
+		if (mode === 'hidden') {
+			statusOverlay.style.transition = 'opacity .4s ease';
+			statusOverlay.style.opacity = '0';
+			setTimeout(() => statusOverlay.remove(), 450);
+			initializing = false;
+			return;
+		}
+		statusOverlay.style.visibility = 'visible';
+		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
+		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
+		statusMode = mode;
+	}
+
+	function setStatusNotice(text) {
+		while (statusNotice.lastChild) {
+			statusNotice.removeChild(statusNotice.lastChild);
+		}
+		const lines = text.split('\n');
+		lines.forEach((line) => {
+			statusNotice.appendChild(document.createTextNode(line));
+			statusNotice.appendChild(document.createElement('br'));
+		});
+	}
+
+	function displayFailureNotice(err) {
+		console.error(err);
+		if (err instanceof Error) {
+			setStatusNotice(err.message);
+		} else if (typeof err === 'string') {
+			setStatusNotice(err);
+		} else {
+			setStatusNotice('An unknown error occurred.');
+		}
+		setStatusMode('notice');
+		initializing = false;
+	}
+
+	const missing = Engine.getMissingFeatures({
+		threads: GODOT_THREADS_ENABLED,
+	});
+
+	if (missing.length !== 0) {
+		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
+			let serviceWorkerRegistrationPromise;
+			try {
+				serviceWorkerRegistrationPromise = navigator.serviceWorker.getRegistration();
+			} catch (err) {
+				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
+			}
+			// There's a chance that installing the service worker would fix the issue
+			Promise.race([
+				serviceWorkerRegistrationPromise.then((registration) => {
+					if (registration != null) {
+						return Promise.reject(new Error('Service worker already exists.'));
+					}
+					return registration;
+				}).then(() => engine.installServiceWorker()),
+				// For some reason, `getRegistration()` can stall
+				new Promise((resolve) => {
+					setTimeout(() => resolve(), 2000);
+				}),
+			]).then(() => {
+				// Reload if there was no error.
+				window.location.reload();
+			}).catch((err) => {
+				console.error('Error while registering service worker:', err);
+			});
+		} else {
+			// Display the message as usual
+			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
+			displayFailureNotice(missingMsg + missing.join('\n'));
+		}
+	} else {
+		setStatusMode('progress');
+		engine.startGame({
+			'onProgress': function (current, total) {
+				if (current > 0 && total > 0) {
+					statusProgress.value = current;
+					statusProgress.max = total;
+				} else {
+					statusProgress.removeAttribute('value');
+					statusProgress.removeAttribute('max');
+				}
+			},
+		}).then(() => {
+			setStatusMode('hidden');
+		}, displayFailureNotice);
+	}
+}());
+		</script>
+	</body>
+</html>
+
