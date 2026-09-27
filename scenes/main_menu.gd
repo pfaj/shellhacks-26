@@ -2,11 +2,14 @@ extends Control
 
 @onready var _logo: Head = $Margin/VBox/Logo
 @onready var _banner: Button = $Margin/VBox/RejoinBanner
+@onready var _identity: HBoxContainer = $Margin/VBox/IdentityRow
 @onready var _dot: Panel = $Margin/VBox/IdentityRow/ColorDot
 @onready var _name: Label = $Margin/VBox/IdentityRow/NameLabel
 @onready var _wins: Label = $Margin/VBox/IdentityRow/WinsLabel
 @onready var _losses: Label = $Margin/VBox/IdentityRow/LossesLabel
+@onready var _hint: Label = $Margin/VBox/HintLabel
 @onready var _play: Button = $Margin/VBox/PlayButton
+@onready var _practice: Button = $Margin/VBox/PracticeButton
 
 
 func _ready() -> void:
@@ -20,7 +23,9 @@ func _ready() -> void:
 	if _banner.visible:
 		_banner.text = "REJOIN  %s" % Net.last_room
 	Ui.style_button(_play, Ui.ACCENT)
+	Ui.style_button(_practice, Color(0, 0, 0, 0), Ui.ACCENT)
 	Ui.style_button(_banner, Color(0, 0, 0, 0), Ui.ACCENT)
+	_play_intro()
 
 
 func _on_rejoin_pressed() -> void:
@@ -43,6 +48,42 @@ func _on_practice_pressed() -> void:
 	Net.peer_losses = 0
 	Net.peer_color = _bot_color()
 	Fx.goto("res://scenes/play_screen.tscn")
+
+
+func _play_intro() -> void:
+	await get_tree().process_frame
+	var items: Array[Control] = [_identity, _hint, _play, _practice]
+	if _banner.visible:
+		items.insert(0, _banner)
+	_fade_slide(_logo, 0.0)
+	var index := 1
+	for item in items:
+		_fade_slide(item, index * 0.07)
+		index += 1
+	_start_logo_breath()
+	if _banner.visible:
+		_pulse(_banner)
+
+
+func _fade_slide(item: Control, delay: float) -> void:
+	item.modulate.a = 0.0
+	var tween := item.create_tween().set_parallel(true)
+	tween.tween_property(item, "modulate:a", 1.0, 0.35).set_delay(delay)
+	tween.tween_property(item, "position:y", item.position.y, 0.45).from(item.position.y + 46.0).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func _start_logo_breath() -> void:
+	_logo.pivot_offset = _logo.size * 0.5
+	var tween := _logo.create_tween().set_loops()
+	tween.tween_interval(0.6)
+	tween.tween_property(_logo, "scale", Vector2(1.035, 1.035), 1.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(_logo, "scale", Vector2.ONE, 1.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
+func _pulse(button: Button) -> void:
+	var tween := button.create_tween().set_loops()
+	tween.tween_property(button, "modulate:a", 0.7, 0.8).set_trans(Tween.TRANS_SINE)
+	tween.tween_property(button, "modulate:a", 1.0, 0.8).set_trans(Tween.TRANS_SINE)
 
 
 func _style_dot(color: Color) -> void:
