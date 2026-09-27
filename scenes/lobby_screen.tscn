@@ -74,10 +74,12 @@ theme_override_font_sizes/font_size = 50
 max_length = 12
 alignment = 1
 
-[node name="ColorRow" type="HBoxContainer" parent="Margin/Column/Fighters/LeftPanel"]
+[node name="ColorRow" type="GridContainer" parent="Margin/Column/Fighters/LeftPanel"]
 layout_mode = 2
-alignment = 1
-theme_override_constants/separation = 12
+size_flags_horizontal = 4
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 14
+columns = 3
 
 [node name="ReadyButton" type="Button" parent="Margin/Column/Fighters/LeftPanel"]
 custom_minimum_size = Vector2(0, 120)

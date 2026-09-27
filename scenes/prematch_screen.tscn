@@ -49,7 +49,7 @@ text = "YOU"
 horizontal_alignment = 1
 
 [node name="LeftColor" type="ColorRect" parent="Margin/Column/Fighters/LeftPanel" unique_id=1178501860]
-custom_minimum_size = Vector2(160, 160)
+custom_minimum_size = Vector2(260, 260)
 layout_mode = 2
 size_flags_horizontal = 4
 
@@ -80,7 +80,7 @@ text = "OPPONENT"
 horizontal_alignment = 1
 
 [node name="RightColor" type="ColorRect" parent="Margin/Column/Fighters/RightPanel" unique_id=1488865759]
-custom_minimum_size = Vector2(160, 160)
+custom_minimum_size = Vector2(260, 260)
 layout_mode = 2
 size_flags_horizontal = 4
 

@@ -15,7 +15,7 @@ const SWATCHES: Array[Color] = [
 @onready var _qr_hint: Label = $Margin/Column/QrHint
 @onready var _fighters: HBoxContainer = $Margin/Column/Fighters
 @onready var _name_input: LineEdit = $Margin/Column/Fighters/LeftPanel/NameInput
-@onready var _color_row: HBoxContainer = $Margin/Column/Fighters/LeftPanel/ColorRow
+@onready var _color_row: GridContainer = $Margin/Column/Fighters/LeftPanel/ColorRow
 @onready var _ready_button: Button = $Margin/Column/Fighters/LeftPanel/ReadyButton
 @onready var _right_color: ColorRect = $Margin/Column/Fighters/RightPanel/RightColor
 @onready var _right_name: Label = $Margin/Column/Fighters/RightPanel/RightName
@@ -127,15 +127,15 @@ func _on_back_pressed() -> void:
 func _build_swatches() -> void:
 	for i in SWATCHES.size():
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(84, 84)
+		button.custom_minimum_size = Vector2(128, 128)
 		button.focus_mode = Control.FOCUS_NONE
 		button.pressed.connect(_on_swatch_pressed.bind(i))
 		var head := Head.new()
 		head.set_anchors_preset(Control.PRESET_FULL_RECT)
-		head.offset_left = 8.0
-		head.offset_top = 8.0
-		head.offset_right = -8.0
-		head.offset_bottom = -8.0
+		head.offset_left = 12.0
+		head.offset_top = 12.0
+		head.offset_right = -12.0
+		head.offset_bottom = -12.0
 		head.apply_color(SWATCHES[i])
 		button.add_child(head)
 		_color_row.add_child(button)
