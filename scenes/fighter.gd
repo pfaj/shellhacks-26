@@ -211,7 +211,8 @@ func play_action(kind: String) -> bool:
 
 
 func play_hurt(kind: String) -> bool:
-	_hurt_key = "hurt_r" if kind == Protocol.JAB else "hurt_l"
+	var jab := kind == Protocol.JAB
+	_hurt_key = "hurt_r" if jab == _local else "hurt_l"
 	return _request(Action.HURT)
 
 
