@@ -18,11 +18,13 @@ var _remote_blocking := false
 var _last_local_pips := 0
 var _last_remote_pips := 0
 var _dot: Texture2D
+var _local_color := Color.WHITE
+var _peer_color := Color.WHITE
 
 @onready var _local_name: Label = $LocalPanel/LocalName
 @onready var _local_chip: ColorRect = $LocalPanel/LocalChip
 @onready var _local_action: Label = $LocalPanel/LocalAction
-@onready var _local_hp_bg: ColorRect = $LocalPanel/LocalHpBg
+@onready var _local_hp_bg: Panel = $LocalPanel/LocalHpBg
 @onready var _local_hp_ghost: ColorRect = $LocalPanel/LocalHpBg/LocalHpGhost
 @onready var _local_hp_fill: ColorRect = $LocalPanel/LocalHpBg/LocalHpFill
 @onready var _local_tilt_bg: ColorRect = $LocalPanel/LocalTiltBg
@@ -34,7 +36,7 @@ var _dot: Texture2D
 @onready var _remote_name: Label = $RemotePanel/RemoteName
 @onready var _remote_chip: ColorRect = $RemotePanel/RemoteChip
 @onready var _remote_action: Label = $RemotePanel/RemoteAction
-@onready var _remote_hp_bg: ColorRect = $RemotePanel/RemoteHpBg
+@onready var _remote_hp_bg: Panel = $RemotePanel/RemoteHpBg
 @onready var _remote_hp_ghost: ColorRect = $RemotePanel/RemoteHpBg/RemoteHpGhost
 @onready var _remote_hp_fill: ColorRect = $RemotePanel/RemoteHpBg/RemoteHpFill
 @onready var _remote_tilt_bg: ColorRect = $RemotePanel/RemoteTiltBg
@@ -85,6 +87,8 @@ func _process(delta: float) -> void:
 
 func setup(local_name: String, local_color: Color, peer_name: String, peer_color: Color, world: Node2D) -> void:
 	_world = world
+	_local_color = local_color
+	_peer_color = peer_color
 	_local_name.text = local_name
 	_remote_name.text = peer_name
 	_local_chip.color = local_color
@@ -214,8 +218,8 @@ func show_result(title: String, status: String, can_rematch: bool) -> void:
 	_rematch_button.visible = can_rematch
 	_rematch_button.disabled = not can_rematch
 	_rematch_button.text = "REMATCH"
-	if can_rematch and title == "YOU WIN":
-		_spawn_confetti()
+	if title == "YOU WIN" or title == "YOU LOSE":
+		_spawn_confetti(_local_color if title == "YOU WIN" else _peer_color)
 
 
 func hide_result() -> void:
@@ -278,7 +282,7 @@ func flash_hit(victim: Node2D) -> void:
 	create_tween().tween_property(victim, "modulate", Color.WHITE, 0.15)
 
 
-func _spawn_confetti() -> void:
+func _spawn_confetti(color: Color) -> void:
 	var particles := CPUParticles2D.new()
 	particles.texture = _dot_texture()
 	particles.amount = 90
@@ -299,8 +303,8 @@ func _spawn_confetti() -> void:
 	particles.scale_amount_min = 0.6
 	particles.scale_amount_max = 1.4
 	var ramp := Gradient.new()
-	ramp.set_color(0, Ui.ACCENT)
-	ramp.set_color(1, Ui.WIN)
+	ramp.set_color(0, color.lightened(0.35))
+	ramp.set_color(1, color)
 	particles.color_ramp = ramp
 	add_child(particles)
 	get_tree().create_timer(3.0).timeout.connect(particles.queue_free)
@@ -335,7 +339,7 @@ func _update_hp(local: bool, hp: int) -> void:
 
 
 func _apply_fill(local: bool, hp: int) -> void:
-	var bg: ColorRect = _local_hp_bg if local else _remote_hp_bg
+	var bg: Panel = _local_hp_bg if local else _remote_hp_bg
 	var fill: ColorRect = _local_hp_fill if local else _remote_hp_fill
 	var value := clampf(float(hp) / MAX_HP, 0.0, 1.0) * bg.size.x
 	if local:
@@ -347,7 +351,7 @@ func _apply_fill(local: bool, hp: int) -> void:
 
 
 func _apply_ghost(local: bool, hp: int) -> void:
-	var bg: ColorRect = _local_hp_bg if local else _remote_hp_bg
+	var bg: Panel = _local_hp_bg if local else _remote_hp_bg
 	var ghost: ColorRect = _local_hp_ghost if local else _remote_hp_ghost
 	var value := clampf(float(hp) / MAX_HP, 0.0, 1.0) * bg.size.x
 	if local:
@@ -359,7 +363,7 @@ func _apply_ghost(local: bool, hp: int) -> void:
 
 
 func _animate_hp(local: bool, old_hp: int, new_hp: int) -> void:
-	var bg: ColorRect = _local_hp_bg if local else _remote_hp_bg
+	var bg: Panel = _local_hp_bg if local else _remote_hp_bg
 	var ghost: ColorRect = _local_hp_ghost if local else _remote_hp_ghost
 	var width := bg.size.x
 	var old_value := clampf(float(old_hp) / MAX_HP, 0.0, 1.0) * width

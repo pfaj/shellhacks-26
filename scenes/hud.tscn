@@ -11,6 +11,18 @@ corner_radius_top_right = 22
 corner_radius_bottom_right = 22
 corner_radius_bottom_left = 22
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hpbar"]
+bg_color = Color(0.05, 0.06, 0.09, 0.9)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.85, 0.9, 1, 0.55)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
 [node name="Hud" type="Control" unique_id=100718732]
 layout_mode = 3
 anchors_preset = 15
@@ -71,11 +83,12 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 0.75)
 theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 44
 
-[node name="LocalHpBg" type="ColorRect" parent="LocalPanel" unique_id=207783077]
+[node name="LocalHpBg" type="Panel" parent="LocalPanel" unique_id=207783077]
 custom_minimum_size = Vector2(320, 36)
 layout_mode = 2
 size_flags_horizontal = 0
-color = Color(0.1, 0.1, 0.12, 0.85)
+clip_contents = true
+theme_override_styles/panel = SubResource("StyleBoxFlat_hpbar")
 
 [node name="LocalHpGhost" type="ColorRect" parent="LocalPanel/LocalHpBg" unique_id=2087936812]
 layout_mode = 0
@@ -162,11 +175,12 @@ theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 44
 horizontal_alignment = 2
 
-[node name="RemoteHpBg" type="ColorRect" parent="RemotePanel" unique_id=1698769953]
+[node name="RemoteHpBg" type="Panel" parent="RemotePanel" unique_id=1698769953]
 custom_minimum_size = Vector2(320, 36)
 layout_mode = 2
 size_flags_horizontal = 8
-color = Color(0.1, 0.1, 0.12, 0.85)
+clip_contents = true
+theme_override_styles/panel = SubResource("StyleBoxFlat_hpbar")
 
 [node name="RemoteHpGhost" type="ColorRect" parent="RemotePanel/RemoteHpBg" unique_id=840160344]
 layout_mode = 0
