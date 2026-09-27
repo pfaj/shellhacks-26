@@ -99,7 +99,6 @@ const JAB_TIME := 0.2
 const PUNCH_TIME := 0.55
 const HURT_TIME := 0.35
 const BREATH_AMPLITUDE := 0.007
-const BREATH_SPEED := 4.8
 
 enum Action { IDLE, JAB, PUNCH, BLOCK, HURT, KO }
 
@@ -122,6 +121,7 @@ var _draw_width := 0.0
 var _draw_height := 0.0
 var _base_scale := 1.0
 var _breath := 1.0
+var _breath_phase := 0.0
 var _artboard_pixel_height := ARTBOARD_HEIGHT
 var _idle_frame := 0
 var _idle_timer := 0.0
@@ -182,6 +182,8 @@ func setup(color: Color, is_local: bool) -> void:
 	_idle_frame = 0
 	_idle_timer = 0.0
 	_hurt_key = "hurt_r"
+	_breath = 1.0
+	_breath_phase = 0.0
 	_refresh_pose()
 
 
@@ -249,6 +251,8 @@ func reset_round() -> void:
 	_idle_frame = 0
 	_idle_timer = 0.0
 	_hurt_key = "hurt_r"
+	_breath = 1.0
+	_breath_phase = 0.0
 	_refresh_pose()
 
 
@@ -349,6 +353,7 @@ func _update_idle(delta: float) -> void:
 	if _idle_timer >= IDLE_FRAME_TIME:
 		_idle_timer = 0.0
 		_idle_frame = 1 - _idle_frame
+		_breath_phase = 0.0
 
 
 func _refresh_pose() -> void:
@@ -365,10 +370,11 @@ func _refresh_pose() -> void:
 
 
 func _update_breath(delta: float) -> void:
-	var target := 1.0
-	if state == Action.IDLE:
-		target = 1.0 + sin(Time.get_ticks_msec() * 0.001 * BREATH_SPEED) * BREATH_AMPLITUDE
-	_breath = lerpf(_breath, target, clampf(delta * 8.0, 0.0, 1.0))
+	_breath_phase += delta
+	if state == Action.IDLE or state == Action.BLOCK:
+		_breath = 1.0 + sin(_breath_phase / IDLE_FRAME_TIME * TAU) * BREATH_AMPLITUDE
+	else:
+		_breath = lerpf(_breath, 1.0, clampf(delta * 10.0, 0.0, 1.0))
 
 
 func _neutral_align(key: String) -> Vector2:
