@@ -223,7 +223,7 @@ export class Room {
           present: players.length,
           names,
           colors,
-          phase: players.length > 0 ? this.phase : "lobby",
+          phase: players.length >= 2 ? this.phase : "lobby",
         }),
       });
     } catch (err) {}
@@ -263,7 +263,7 @@ export class Directory {
 
   _prune(now) {
     for (const [code, room] of Object.entries(this.rooms)) {
-      if (now - room.at > STALE_MS || room.present <= 0) {
+      if (now - room.at > STALE_MS || room.present < 2) {
         delete this.rooms[code];
       }
     }
@@ -275,7 +275,7 @@ export class Directory {
     const now = Date.now();
     if (url.pathname === "/update") {
       const data = await request.json();
-      if (data.present > 0) {
+      if (data.present >= 2) {
         this.rooms[data.code] = {
           code: data.code,
           present: data.present,

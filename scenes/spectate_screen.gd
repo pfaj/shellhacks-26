@@ -90,7 +90,7 @@ func _add_room(room: Dictionary) -> void:
 	var match_name := " vs ".join(names) if names.size() > 0 else "waiting for players"
 	var present := int(room.get("present", 0))
 	var live := _is_live(room)
-	var tag := "LIVE" if live else ("IN LOBBY" if present >= 2 else "WAITING FOR OPPONENT")
+	var tag := "LIVE" if live else "IN LOBBY"
 	var button := Button.new()
 	button.custom_minimum_size = Vector2(0, 130)
 	button.add_theme_font_size_override("font_size", 40)
