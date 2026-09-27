@@ -33,6 +33,8 @@ var remote_rounds := 0
 var local_mode := false
 var last_room := ""
 var had_match := false
+var spectate_room := ""
+var spectate_auto := false
 
 var _socket := WebSocketPeer.new()
 var _active := false

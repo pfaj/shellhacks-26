@@ -30,7 +30,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if game != null and game.is_match_over():
+	if game != null and not game.is_round_live():
 		return
 	_input_timer += delta
 	_move_timer -= delta
@@ -63,7 +63,7 @@ func _try_attack() -> void:
 
 
 func _resolve_attack(kind: String) -> void:
-	if game == null or game.is_match_over():
+	if game == null or not game.is_round_live():
 		return
 	if game.mutual_disengage():
 		Net.inject_peer({"t": Protocol.MISS})

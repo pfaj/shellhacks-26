@@ -45,28 +45,40 @@ const PEER_POSES := {
 	"ko": "Knockout",
 }
 const LOCAL_ALIGN := {
-	"idle_a": Vector2(0.5244, 0.9477),
-	"idle_b": Vector2(0.5091, 0.9477),
-	"jab": Vector2(0.5299, 0.9684),
-	"punch": Vector2(0.4887, 0.9684),
-	"block": Vector2(0.5044, 0.9549),
-	"hurt_l": Vector2(0.5149, 0.9518),
-	"hurt_r": Vector2(0.5153, 0.9518),
-	"dodge_l": Vector2(0.4964, 0.9477),
-	"dodge_r": Vector2(0.5280, 0.9477),
-	"ko": Vector2(0.5051, 0.9539),
+	"idle_a": Vector2(0.5247, 0.9474),
+	"idle_b": Vector2(0.4962, 0.9474),
+	"jab": Vector2(0.5241, 0.9672),
+	"jab_l": Vector2(0.5241, 0.9672),
+	"jab_r": Vector2(0.5198, 0.9581),
+	"punch": Vector2(0.4684, 0.9550),
+	"punch_l": Vector2(0.4920, 0.9428),
+	"punch_r": Vector2(0.4684, 0.9550),
+	"block": Vector2(0.5011, 0.9505),
+	"block_l": Vector2(0.5005, 0.9413),
+	"block_r": Vector2(0.5059, 0.9413),
+	"hurt_l": Vector2(0.5273, 0.9566),
+	"hurt_r": Vector2(0.5279, 0.9566),
+	"dodge_l": Vector2(0.4770, 0.9474),
+	"dodge_r": Vector2(0.5091, 0.9474),
+	"ko": Vector2(0.5011, 0.9535),
 }
 const PEER_ALIGN := {
-	"idle_a": Vector2(0.4716, 0.9352),
-	"idle_b": Vector2(0.4738, 0.9352),
-	"jab": Vector2(0.4629, 0.9166),
-	"punch": Vector2(0.5080, 0.9280),
-	"block": Vector2(0.4905, 0.9280),
-	"hurt_l": Vector2(0.5291, 0.9259),
-	"hurt_r": Vector2(0.4822, 0.9259),
-	"dodge_l": Vector2(0.4811, 0.9352),
-	"dodge_r": Vector2(0.4905, 0.9352),
-	"ko": Vector2(0.5055, 0.9394),
+	"idle_a": Vector2(0.4719, 0.9355),
+	"idle_b": Vector2(0.4738, 0.9355),
+	"jab": Vector2(0.4623, 0.9173),
+	"jab_l": Vector2(0.4597, 0.9373),
+	"jab_r": Vector2(0.4623, 0.9173),
+	"punch": Vector2(0.5083, 0.9282),
+	"punch_l": Vector2(0.5083, 0.9282),
+	"punch_r": Vector2(0.5083, 0.9282),
+	"block": Vector2(0.4904, 0.9282),
+	"block_l": Vector2(0.4808, 0.9227),
+	"block_r": Vector2(0.4904, 0.9282),
+	"hurt_l": Vector2(0.5294, 0.9245),
+	"hurt_r": Vector2(0.4821, 0.9264),
+	"dodge_l": Vector2(0.4808, 0.9355),
+	"dodge_r": Vector2(0.4904, 0.9355),
+	"ko": Vector2(0.5058, 0.9391),
 }
 const ARTBOARD_WIDTH := 1373.0
 const ARTBOARD_HEIGHT := 1930.0
@@ -86,6 +98,7 @@ const JAB_CHAIN_COOLDOWN := 0.9
 const JAB_TIME := 0.2
 const PUNCH_TIME := 0.55
 const HURT_TIME := 0.35
+const BREATH_AMPLITUDE := 0.007
 
 enum Action { IDLE, JAB, PUNCH, BLOCK, HURT, KO }
 
@@ -106,6 +119,9 @@ var _poses := {}
 var _align := {}
 var _draw_width := 0.0
 var _draw_height := 0.0
+var _base_scale := 1.0
+var _breath := 1.0
+var _breath_phase := 0.0
 var _artboard_pixel_height := ARTBOARD_HEIGHT
 var _idle_frame := 0
 var _idle_timer := 0.0
@@ -134,6 +150,7 @@ func _process(delta: float) -> void:
 		if _state_timer == 0.0:
 			_finish_action()
 	_update_idle(delta)
+	_update_breath(delta)
 	_refresh_pose()
 
 
@@ -152,8 +169,7 @@ func setup(color: Color, is_local: bool) -> void:
 	var content_height := LOCAL_CONTENT_HEIGHT if is_local else PEER_CONTENT_HEIGHT
 	_draw_height = bot_height / content_height
 	_draw_width = _draw_height * ARTBOARD_RATIO
-	var factor := _draw_height / _artboard_pixel_height
-	_sprite.scale = Vector2(factor, factor)
+	_base_scale = _draw_height / _artboard_pixel_height
 	state = Action.IDLE
 	_cooldown = 0.0
 	_chain_timer = 0.0
@@ -166,6 +182,8 @@ func setup(color: Color, is_local: bool) -> void:
 	_idle_frame = 0
 	_idle_timer = 0.0
 	_hurt_key = "hurt_r"
+	_breath = 1.0
+	_breath_phase = 0.0
 	_refresh_pose()
 
 
@@ -176,8 +194,7 @@ func place(new_position: Vector2) -> void:
 func set_art_height(height: float) -> void:
 	_draw_height = height
 	_draw_width = _draw_height * ARTBOARD_RATIO
-	var factor := _draw_height / _artboard_pixel_height
-	_sprite.scale = Vector2(factor, factor)
+	_base_scale = _draw_height / _artboard_pixel_height
 	_refresh_pose()
 
 
@@ -199,7 +216,8 @@ func play_action(kind: String) -> bool:
 
 
 func play_hurt(kind: String) -> bool:
-	_hurt_key = "hurt_r" if kind == Protocol.JAB else "hurt_l"
+	var jab := kind == Protocol.JAB
+	_hurt_key = "hurt_r" if jab == _local else "hurt_l"
 	return _request(Action.HURT)
 
 
@@ -216,6 +234,26 @@ func set_block(value: bool) -> void:
 
 func block_hit() -> void:
 	Sfx.play(Protocol.BLOCK, 0.05)
+
+
+func reset_round() -> void:
+	state = Action.IDLE
+	_move = 0.0
+	_block_held = false
+	_cooldown = 0.0
+	_chain_timer = 0.0
+	_jab_count = 0
+	_buffered = ""
+	_buffer_timer = 0.0
+	_pending_kind = ""
+	_reprime_timer = 0.0
+	_state_timer = 0.0
+	_idle_frame = 0
+	_idle_timer = 0.0
+	_hurt_key = "hurt_r"
+	_breath = 1.0
+	_breath_phase = 0.0
+	_refresh_pose()
 
 
 func _request(action: Action) -> bool:
@@ -315,6 +353,7 @@ func _update_idle(delta: float) -> void:
 	if _idle_timer >= IDLE_FRAME_TIME:
 		_idle_timer = 0.0
 		_idle_frame = 1 - _idle_frame
+		_breath_phase = 0.0
 
 
 func _refresh_pose() -> void:
@@ -323,8 +362,19 @@ func _refresh_pose() -> void:
 	if texture != null and _sprite.texture != texture:
 		_sprite.texture = texture
 	var alignment: Vector2 = _align.get(key, _neutral_align(key))
-	var offset_x := -(1.0 - alignment.x) * _draw_width if FLIP else -alignment.x * _draw_width
-	_sprite.position = Vector2(offset_x, -alignment.y * _draw_height)
+	var width := _draw_width * _breath
+	var height := _draw_height * _breath
+	var offset_x := -(1.0 - alignment.x) * width if FLIP else -alignment.x * width
+	_sprite.position = Vector2(offset_x, -alignment.y * height)
+	_sprite.scale = Vector2.ONE * _base_scale * _breath
+
+
+func _update_breath(delta: float) -> void:
+	_breath_phase += delta
+	if state == Action.IDLE or state == Action.BLOCK:
+		_breath = 1.0 + sin(_breath_phase / IDLE_FRAME_TIME * TAU) * BREATH_AMPLITUDE
+	else:
+		_breath = lerpf(_breath, 1.0, clampf(delta * 10.0, 0.0, 1.0))
 
 
 func _neutral_align(key: String) -> Vector2:

@@ -14,6 +14,8 @@ const ACT := "act"
 const HIT := "hit"
 const HIT_RESULT := "hit_result"
 const MISS := "miss"
+const ROUND_END := "round_end"
+const SPECTATE_STATE := "spectate_state"
 const REMATCH := "rematch"
 const FORFEIT := "forfeit"
 
