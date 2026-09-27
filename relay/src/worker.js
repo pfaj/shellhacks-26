@@ -160,6 +160,7 @@ export class Room {
     }
     if (message.t === "set_ready") {
       this.ready[slot] = Boolean(message.value);
+      this.phase = "lobby";
       await this._persist();
       await this._updateDirectory(true);
       return;
