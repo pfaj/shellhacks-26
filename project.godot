@@ -36,8 +36,8 @@ enabled=PackedStringArray("res://addons/backstitch/plugin.cfg")
 
 [gui]
 
-theme/custom_font="res://assets/fonts/RussoOne-Regular.ttf"
 theme/default_theme_scale=2.0
+theme/custom_font="res://assets/fonts/RussoOne-Regular.ttf"
 
 [physics]
 
