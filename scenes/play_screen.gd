@@ -13,6 +13,8 @@ const ROUND_BREAK := 1.6
 const ROUND_TIME := 60.0
 const ROUNDS_TO_WIN := 2
 const COMBO_WINDOW := 1.4
+const COMBO_DAMAGE_STEP := 0.04
+const COMBO_DAMAGE_MAX := 1.4
 const DODGE_THRESHOLD := 0.5
 const SHAKE_TIME := 0.18
 const SHAKE_STRENGTH := 12.0
@@ -214,7 +216,7 @@ func _resolve_hit(kind: String) -> void:
 		Net.send({"t": Protocol.MISS})
 		_hud.show_floating_text(_remote.position + Vector2(0, -700), "MISS", Color(0.75, 0.75, 0.85), 52)
 		return
-	Net.send({"t": Protocol.HIT, "kind": kind})
+	Net.send({"t": Protocol.HIT, "kind": kind, "combo": _local_combo})
 
 
 func mutual_disengage() -> bool:
@@ -237,7 +239,8 @@ func is_round_live() -> bool:
 
 func bot_defense_result(kind: String) -> Dictionary:
 	var blocked := _remote_blocking
-	var damage := _chip_damage(kind) if blocked else _base_damage(kind)
+	var base := _chip_damage(kind) if blocked else _base_damage(kind)
+	var damage := _scaled_damage(base, _local_combo)
 	return {
 		"t": Protocol.HIT_RESULT,
 		"blocked": blocked,
@@ -261,7 +264,7 @@ func _on_peer_message(message: Dictionary) -> void:
 			_remote.play_action(kind)
 			_hud.set_remote_action(kind.to_upper())
 		Protocol.HIT:
-			_resolve_incoming_hit(str(message.get("kind", Protocol.JAB)))
+			_resolve_incoming_hit(str(message.get("kind", Protocol.JAB)), int(message.get("combo", 0)))
 		Protocol.HIT_RESULT:
 			_apply_hit_result(message)
 		Protocol.MISS:
@@ -275,11 +278,11 @@ func _on_peer_message(message: Dictionary) -> void:
 			_check_rematch()
 
 
-func _resolve_incoming_hit(kind: String) -> void:
+func _resolve_incoming_hit(kind: String, combo: int) -> void:
 	if not is_round_live():
 		return
 	if _controls.blocking:
-		var chip := _chip_damage(kind)
+		var chip := _scaled_damage(_chip_damage(kind), combo)
 		Net.send({
 			"t": Protocol.HIT_RESULT,
 			"blocked": true,
@@ -289,7 +292,7 @@ func _resolve_incoming_hit(kind: String) -> void:
 		})
 		_apply_local_damage(chip, true, kind)
 		return
-	var damage := _base_damage(kind)
+	var damage := _scaled_damage(_base_damage(kind), combo)
 	Net.send({
 		"t": Protocol.HIT_RESULT,
 		"blocked": false,
@@ -358,6 +361,14 @@ func _base_damage(kind: String) -> int:
 
 func _chip_damage(kind: String) -> int:
 	return ceili(_base_damage(kind) * CHIP_RATIO)
+
+
+func combo_multiplier(combo: int) -> float:
+	return minf(1.0 + COMBO_DAMAGE_STEP * maxi(combo, 0), COMBO_DAMAGE_MAX)
+
+
+func _scaled_damage(base: int, combo: int) -> int:
+	return maxi(1, int(roundf(base * combo_multiplier(combo))))
 
 
 func _finish_match(result: Result) -> void:
