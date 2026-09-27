@@ -86,6 +86,7 @@ export class Room {
           rounds: this.rounds,
           phase: this.phase,
           ready: this.ready,
+          present: players.length,
         }),
       );
       return new Response(null, { status: 101, webSocket: client });
@@ -307,7 +308,7 @@ export default {
       return env.DIRECTORY.get(id).fetch(request);
     }
     if (url.pathname !== "/ws") {
-      return new Response("sockem relay ok", { status: 200 });
+      return new Response("clanker relay ok", { status: 200 });
     }
     const room = (url.searchParams.get("room") || "").trim().toUpperCase();
     if (!/^[A-Z0-9]{4,8}$/.test(room)) {

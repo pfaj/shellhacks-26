@@ -33,7 +33,7 @@ const KO_ZOOM := 1.14
 const KO_ZOOM_TIME := 0.45
 const SHAKE_ROTATION := 0.012
 const HINT_TILT := "TILT YOUR PHONE TO DODGE"
-const HINT_ACTIONS := "TAP = JAB      HOLD = PUNCH      BOTH FINGERS = BLOCK"
+const HINT_ACTIONS := "TAP LEFT = JAB      TAP RIGHT = PUNCH      HOLD BOTH = BLOCK"
 const HINT_TILT_TIME := 6.0
 const HINT_ACTIONS_TIME := 9.0
 
@@ -88,7 +88,7 @@ var _zoom_tween: Tween
 func _ready() -> void:
 	Settings.ensure()
 	if OS.has_feature("web"):
-		_tilt = JavaScriptBridge.get_interface("sockemTilt")
+		_tilt = JavaScriptBridge.get_interface("clankerTilt")
 	_local.setup(Net.my_color, true)
 	_remote.setup(Net.peer_color, false)
 	_layout_stage()
@@ -391,7 +391,6 @@ func _apply_local_damage(damage: int, blocked: bool, kind: String, combo := 0) -
 	_local_hp = maxi(_local_hp - damage, 0)
 	_hud.show_damage(_local, damage, blocked, true)
 	_hud.flash_hit(_local)
-	_hud.show_impact(_local, kind == Protocol.PUNCH and not blocked, blocked)
 	if blocked:
 		_local.knockback(0.35)
 		_local.block_hit()
@@ -420,7 +419,6 @@ func _apply_remote_damage(damage: int, blocked: bool, kind: String) -> void:
 	_remote_hp = maxi(_remote_hp - damage, 0)
 	_hud.show_damage(_remote, damage, blocked, false)
 	_hud.flash_hit(_remote)
-	_hud.show_impact(_remote, kind == Protocol.PUNCH and not blocked, blocked)
 	if blocked:
 		_remote.knockback(-0.35)
 		_remote.block_hit()
@@ -654,7 +652,6 @@ func _shake() -> void:
 
 func _ko_moment(victim: Node2D) -> void:
 	_hud.show_ko()
-	_hud.show_impact(victim, true)
 	Fx.flash(0.35)
 	Fx.vignette(0.6, 1.2)
 	_zoom_stage(victim.position, KO_ZOOM, KO_ZOOM_TIME)

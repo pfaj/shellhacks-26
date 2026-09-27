@@ -88,4 +88,4 @@ func _on_back_pressed() -> void:
 func _room_from_url() -> String:
 	if not OS.has_feature("web"):
 		return ""
-	return str(JavaScriptBridge.eval("sockemGetRoom()"))
+	return str(JavaScriptBridge.eval("clankerGetRoom()"))

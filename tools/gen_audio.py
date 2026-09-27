@@ -317,7 +317,7 @@ def build_click():
 
 def main():
     keep = "--keep" in sys.argv
-    tmp = tempfile.mkdtemp(prefix="sockem_audio_")
+    tmp = tempfile.mkdtemp(prefix="clanker_audio_")
     jobs = [
         ("fight", build_fight, os.path.join(ROOT, "assets/audio/music/fight.wav")),
         ("crowd", build_crowd, os.path.join(ROOT, "assets/audio/ambience/crowd.wav")),

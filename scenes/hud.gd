@@ -7,7 +7,6 @@ const MAX_HP := 100
 const PUNCH_DAMAGE := 12
 const ACTION_LABEL_TIME := 0.6
 const DAMAGE_DRIFT := -100.0
-const COMBO_HOT := Color(1.0, 0.55, 0.15)
 
 var _world: Node2D = null
 var _last_local_hp := -1
@@ -19,7 +18,6 @@ var _remote_blocking := false
 var _last_local_pips := 0
 var _last_remote_pips := 0
 var _dot: Texture2D
-var _ring: Texture2D
 var _local_color := Color.WHITE
 var _peer_color := Color.WHITE
 var _hint: Label
@@ -337,73 +335,6 @@ func flash_hit(victim: Node2D) -> void:
 		return
 	victim.modulate = Color(1.7, 1.6, 1.6)
 	create_tween().tween_property(victim, "modulate", Color.WHITE, 0.15)
-
-
-func show_impact(victim: Node2D, heavy: bool, blocked := false) -> void:
-	if _world == null or victim == null:
-		return
-	var origin: Vector2 = victim.impact_point()
-	var color := Color(0.45, 0.8, 1.0) if blocked else (COMBO_HOT if heavy else Color(1.0, 0.92, 0.45))
-	_spawn_ring(origin, color, 1.35 if heavy else 1.0)
-	_spawn_burst(origin, color, 24 if heavy else 13, heavy)
-
-
-func _spawn_ring(origin: Vector2, color: Color, size: float) -> void:
-	var ring := Sprite2D.new()
-	ring.texture = _ring_texture()
-	ring.modulate = color
-	ring.position = origin
-	ring.rotation = randf_range(0.0, TAU)
-	ring.scale = Vector2.ONE * 0.35 * size
-	_world.add_child(ring)
-	var tween := create_tween().set_parallel(true)
-	tween.tween_property(ring, "scale", Vector2.ONE * 1.15 * size, 0.22).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.tween_property(ring, "modulate:a", 0.0, 0.24)
-	tween.chain().tween_callback(ring.queue_free)
-
-
-func _spawn_burst(origin: Vector2, color: Color, amount: int, heavy: bool) -> void:
-	var particles := CPUParticles2D.new()
-	particles.texture = _dot_texture()
-	particles.amount = amount
-	particles.lifetime = 0.5 if heavy else 0.35
-	particles.one_shot = true
-	particles.explosiveness = 1.0
-	particles.emitting = true
-	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
-	particles.emission_sphere_radius = 18.0
-	particles.position = origin
-	particles.direction = Vector2(0, -1)
-	particles.spread = 180.0
-	particles.initial_velocity_min = 380.0 if heavy else 260.0
-	particles.initial_velocity_max = 780.0 if heavy else 520.0
-	particles.gravity = Vector2(900, 900)
-	particles.damping_min = 120.0
-	particles.damping_max = 280.0
-	particles.scale_amount_min = 0.25
-	particles.scale_amount_max = 0.9 if heavy else 0.6
-	var ramp := Gradient.new()
-	ramp.set_color(0, Color(1, 1, 1, 1))
-	ramp.set_color(1, color)
-	particles.color_ramp = ramp
-	_world.add_child(particles)
-	get_tree().create_timer(1.2).timeout.connect(particles.queue_free)
-
-
-func _ring_texture() -> Texture2D:
-	if _ring == null:
-		var side := 128
-		var image := Image.create(side, side, false, Image.FORMAT_RGBA8)
-		image.fill(Color(0, 0, 0, 0))
-		var center := Vector2(side * 0.5 - 0.5, side * 0.5 - 0.5)
-		for y in side:
-			for x in side:
-				var distance := Vector2(x, y).distance_to(center)
-				var alpha := 1.0 - clampf(absf(distance - 52.0) / 8.0, 0.0, 1.0)
-				if alpha > 0.0:
-					image.set_pixel(x, y, Color(1, 1, 1, alpha))
-		_ring = ImageTexture.create_from_image(image)
-	return _ring
 
 
 func _spawn_confetti(color: Color) -> void:

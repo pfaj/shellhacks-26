@@ -5,7 +5,7 @@ GODOT_BIN="${GODOT_BIN:-godot}"
 PAGES_DOMAIN="${PAGES_DOMAIN:-clankerclash.ink}"
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD_DIR="$PROJECT_DIR/build/web"
-PAGES_DIR="$(mktemp -d "${TMPDIR:-/tmp}/sockem-pages.XXXXXX")"
+PAGES_DIR="$(mktemp -d "${TMPDIR:-/tmp}/clanker-pages.XXXXXX")"
 REMOTE="$(git -C "$PROJECT_DIR" remote get-url origin)"
 
 cleanup() {
@@ -31,6 +31,6 @@ echo "$PAGES_DOMAIN" > "$PAGES_DIR/CNAME"
 cd "$PAGES_DIR"
 git init -q -b gh-pages
 git add -A
-git -c user.name="sockem-deploy" -c user.email="deploy@sockem.local" commit -qm "deploy $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+git -c user.name="clanker-deploy" -c user.email="deploy@clanker.local" commit -qm "deploy $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 git push -f "$REMOTE" gh-pages
 echo "Published gh-pages (Pages: https://$PAGES_DOMAIN/)"

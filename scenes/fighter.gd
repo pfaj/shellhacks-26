@@ -101,7 +101,6 @@ const HURT_TIME := 0.35
 const BREATH_AMPLITUDE := 0.007
 const KNOCKBACK_DISTANCE := 44.0
 const KNOCKBACK_RETURN := 8.0
-const IMPACT_HEIGHT := 0.74
 
 enum Action { IDLE, JAB, PUNCH, BLOCK, HURT, KO }
 
@@ -228,10 +227,6 @@ func play_hurt(kind: String, hit_pitch := 1.0) -> bool:
 	_hurt_key = "hurt_r" if jab == _local else "hurt_l"
 	_hurt_pitch = hit_pitch
 	return _request(Action.HURT)
-
-
-func impact_point() -> Vector2:
-	return position + Vector2(0.0, -_draw_height * IMPACT_HEIGHT)
 
 
 func knockback(direction: float) -> void:

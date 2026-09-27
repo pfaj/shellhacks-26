@@ -43,8 +43,8 @@ theme_override_constants/separation = 26
 
 [node name="Title" type="Label" parent="Margin/Column"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 96
-text = "SOCK'EM"
+theme_override_font_sizes/font_size = 80
+text = "CLANKER CLASH"
 horizontal_alignment = 1
 
 [node name="ProfileLabel" type="Label" parent="Margin/Column"]

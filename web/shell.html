@@ -97,7 +97,7 @@ body {
 	border-radius: 7px;
 }
 
-#sockem-boot-title {
+#clanker-boot-title {
 	font-family: system-ui, -apple-system, sans-serif;
 	font-size: 40px;
 	font-weight: 800;
@@ -106,23 +106,23 @@ body {
 	padding: 0 16px;
 	text-align: center;
 	text-shadow: 0 0 24px rgba(47, 129, 247, .75);
-	animation: sockem-pulse 1.8s ease-in-out infinite;
+	animation: clanker-pulse 1.8s ease-in-out infinite;
 }
 
-@keyframes sockem-pulse {
+@keyframes clanker-pulse {
 	0%, 100% { opacity: .78; letter-spacing: 6px; }
 	50% { opacity: 1; letter-spacing: 7px; }
 }
 
-#sockem-boot-hint {
+#clanker-boot-hint {
 	font-family: system-ui, -apple-system, sans-serif;
 	font-size: 16px;
 	opacity: .55;
 	margin-bottom: 28px;
-	animation: sockem-fade 2.4s ease-in-out infinite;
+	animation: clanker-fade 2.4s ease-in-out infinite;
 }
 
-@keyframes sockem-fade {
+@keyframes clanker-fade {
 	0%, 100% { opacity: .35; }
 	50% { opacity: .7; }
 }
@@ -143,37 +143,37 @@ body {
 		</style>
 		<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 		<script>
-window.sockemTilt = { ready: false, started: false, permission: 'unknown', error: '', alpha: 0, beta: 0, gamma: 0 };
+window.clankerTilt = { ready: false, started: false, permission: 'unknown', error: '', alpha: 0, beta: 0, gamma: 0 };
 
-function sockemOrientation(e) {
-	var t = window.sockemTilt;
+function clankerOrientation(e) {
+	var t = window.clankerTilt;
 	t.alpha = e.alpha || 0;
 	t.beta = e.beta || 0;
 	t.gamma = e.gamma || 0;
 	t.ready = true;
 }
 
-function sockemStartTilt() {
-	if (window.sockemTilt.started) {
+function clankerStartTilt() {
+	if (window.clankerTilt.started) {
 		return;
 	}
-	window.sockemTilt.started = true;
+	window.clankerTilt.started = true;
 	if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
 		DeviceOrientationEvent.requestPermission().then(function (r) {
 			if (r === 'granted') {
-				window.addEventListener('deviceorientation', sockemOrientation, true);
-				window.sockemTilt.permission = 'granted';
+				window.addEventListener('deviceorientation', clankerOrientation, true);
+				window.clankerTilt.permission = 'granted';
 			} else {
-				window.sockemTilt.permission = 'denied';
-				window.sockemTilt.error = 'motion permission denied';
+				window.clankerTilt.permission = 'denied';
+				window.clankerTilt.error = 'motion permission denied';
 			}
 		}).catch(function (err) {
-			window.sockemTilt.permission = 'error';
-			window.sockemTilt.error = String(err);
+			window.clankerTilt.permission = 'error';
+			window.clankerTilt.error = String(err);
 		});
 	} else {
-		window.addEventListener('deviceorientation', sockemOrientation, true);
-		window.sockemTilt.permission = 'granted';
+		window.addEventListener('deviceorientation', clankerOrientation, true);
+		window.clankerTilt.permission = 'granted';
 	}
 }
 
@@ -181,19 +181,19 @@ function sockemStartTilt() {
 	function requestOnce() {
 		window.removeEventListener('touchend', requestOnce, true);
 		window.removeEventListener('click', requestOnce, true);
-		sockemStartTilt();
+		clankerStartTilt();
 	}
 	window.addEventListener('touchend', requestOnce, true);
 	window.addEventListener('click', requestOnce, true);
 })();
 
-function sockemGetRoom() {
+function clankerGetRoom() {
 	var params = new URLSearchParams(window.location.search);
 	var room = (params.get('room') || '').trim().toUpperCase();
 	return /^[A-Z0-9]{4,8}$/.test(room) ? room : '';
 }
 
-function sockemQRPng(url, size) {
+function clankerQRPng(url, size) {
 	if (typeof qrcode === 'undefined') {
 		return '';
 	}
@@ -221,12 +221,12 @@ function sockemQRPng(url, size) {
 	return canvas.toDataURL('image/png');
 }
 
-window.sockemTextChanged = null;
-var sockemInputHotspot = null;
-var sockemTextInput = null;
+window.clankerTextChanged = null;
+var clankerInputHotspot = null;
+var clankerTextInput = null;
 
-function sockemTextInputElement() {
-	if (!sockemTextInput) {
+function clankerTextInputElement() {
+	if (!clankerTextInput) {
 		var el = document.createElement('input');
 		el.type = 'text';
 		el.autocomplete = 'off';
@@ -246,22 +246,22 @@ function sockemTextInputElement() {
 		el.style.display = 'none';
 		el.style.padding = '0';
 		el.addEventListener('input', function () {
-			if (window.sockemTextChanged) {
-				window.sockemTextChanged(el.value);
+			if (window.clankerTextChanged) {
+				window.clankerTextChanged(el.value);
 			}
 		});
 		el.addEventListener('keydown', function (event) {
 			if (event.key === 'Enter') {
-				sockemHideTextInput();
+				clankerHideTextInput();
 			}
 		});
 		document.body.appendChild(el);
-		sockemTextInput = el;
+		clankerTextInput = el;
 	}
-	return sockemTextInput;
+	return clankerTextInput;
 }
 
-function sockemRegisterTextInput(gx, gy, gw, gh, vw, vh, maxLength, value) {
+function clankerRegisterTextInput(gx, gy, gw, gh, vw, vh, maxLength, value) {
 	if (!('ontouchstart' in window)) {
 		return;
 	}
@@ -269,7 +269,7 @@ function sockemRegisterTextInput(gx, gy, gw, gh, vw, vh, maxLength, value) {
 	var r = canvas.getBoundingClientRect();
 	var sx = r.width / vw;
 	var sy = r.height / vh;
-	sockemInputHotspot = {
+	clankerInputHotspot = {
 		x: r.left + gx * sx,
 		y: r.top + gy * sy,
 		w: gw * sx,
@@ -279,14 +279,14 @@ function sockemRegisterTextInput(gx, gy, gw, gh, vw, vh, maxLength, value) {
 	};
 }
 
-function sockemUnregisterTextInput() {
-	sockemInputHotspot = null;
-	sockemHideTextInput();
+function clankerUnregisterTextInput() {
+	clankerInputHotspot = null;
+	clankerHideTextInput();
 }
 
-function sockemShowTextInput() {
-	var el = sockemTextInputElement();
-	var h = sockemInputHotspot;
+function clankerShowTextInput() {
+	var el = clankerTextInputElement();
+	var h = clankerInputHotspot;
 	if (!h) {
 		return;
 	}
@@ -302,19 +302,19 @@ function sockemShowTextInput() {
 	el.setSelectionRange(el.value.length, el.value.length);
 }
 
-function sockemHideTextInput() {
-	if (sockemTextInput) {
-		sockemTextInput.blur();
-		sockemTextInput.style.display = 'none';
+function clankerHideTextInput() {
+	if (clankerTextInput) {
+		clankerTextInput.blur();
+		clankerTextInput.style.display = 'none';
 	}
 }
 
 (function () {
 	function inside(x, y) {
-		if (!sockemInputHotspot) {
+		if (!clankerInputHotspot) {
 			return false;
 		}
-		var h = sockemInputHotspot;
+		var h = clankerInputHotspot;
 		return x >= h.x && x <= h.x + h.w && y >= h.y && y <= h.y + h.h;
 	}
 	window.addEventListener('touchend', function (event) {
@@ -322,14 +322,14 @@ function sockemHideTextInput() {
 		for (var i = 0; i < touches.length; i++) {
 			if (inside(touches[i].clientX, touches[i].clientY)) {
 				event.preventDefault();
-				sockemShowTextInput();
+				clankerShowTextInput();
 				return;
 			}
 		}
 	}, true);
 	window.addEventListener('mouseup', function (event) {
 		if (inside(event.clientX, event.clientY)) {
-			sockemShowTextInput();
+			clankerShowTextInput();
 		}
 	}, true);
 })();
@@ -399,8 +399,8 @@ function sockemHideTextInput() {
 		</noscript>
 
 		<div id="status">
-			<div id="sockem-boot-title">CLANKER CLASH</div>
-			<div id="sockem-boot-hint">First tap will ask for motion access - allow it for tilt controls</div>
+			<div id="clanker-boot-title">CLANKER CLASH</div>
+			<div id="clanker-boot-hint">First tap will ask for motion access - allow it for tilt controls</div>
 			<img id="status-splash" class="$GODOT_SPLASH_CLASSES" src="$GODOT_SPLASH" alt="">
 			<progress id="status-progress"></progress>
 			<div id="status-notice"></div>

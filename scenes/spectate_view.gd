@@ -2,7 +2,10 @@ extends Control
 
 const RECONNECT_DELAY := 2.0
 const RECONNECT_LIMIT := 4
-const IDLE_JUMP := 10.0
+const CONNECT_TIMEOUT := 6.0
+const WATCHDOG_TIMEOUT := 20.0
+const ROOM_END_GRACE := 6.0
+const END_RETURN_DELAY := 3.0
 const ROUND_BREAK := 2.2
 const MAX_HP := 100
 
@@ -10,8 +13,13 @@ var _socket := WebSocketPeer.new()
 var _reconnecting := false
 var _reconnect_timer := 0.0
 var _reconnect_attempts := 0
+var _connect_started := 0.0
 var _leaving := false
 var _last_message := 0.0
+var _peer_left_seen := false
+var _peer_left_timer := 0.0
+var _ended := false
+var _ended_timer := 0.0
 var _background_wide := false
 
 var _names := ["PLAYER 1", "PLAYER 2"]
@@ -75,39 +83,60 @@ func _exit_tree() -> void:
 func _process(delta: float) -> void:
 	if _fighters.is_empty():
 		return
-	_socket.poll()
-	match _socket.get_ready_state():
-		WebSocketPeer.STATE_OPEN:
-			_reconnect_attempts = 0
-			while _socket.get_available_packet_count() > 0:
-				_handle_packet(_socket.get_packet().get_string_from_utf8())
-		WebSocketPeer.STATE_CLOSED:
-			_handle_closed(delta)
-	for slot in 2:
-		_fighters[slot].set_move(_move[slot], delta)
-	_hud.set_bars(_hp[0], _hp[1], _move[0], _move[1])
-	_hud.set_blocking(_blocking[0], _blocking[1])
-	if Net.spectate_auto and not _leaving and _now() - _last_message > IDLE_JUMP:
-		_leave_to("res://scenes/spectate_screen.tscn")
-
-
-func _connect() -> void:
-	_socket = WebSocketPeer.new()
-	var url := "%s?room=%s&role=spec" % [Net.RELAY_URL, Net.spectate_room]
-	if _socket.connect_to_url(url) != OK:
-		_hud.set_status("Could not reach room %s" % Net.spectate_room)
+	if _ended:
+		_ended_timer -= delta
+		if _ended_timer <= 0.0:
+			_leave_to("res://scenes/spectate_screen.tscn")
 		return
-	_reconnecting = false
-
-
-func _handle_closed(delta: float) -> void:
+	_socket.poll()
 	if _reconnecting:
 		_reconnect_timer -= delta
 		if _reconnect_timer <= 0.0:
 			_connect()
+	elif _socket.get_ready_state() == WebSocketPeer.STATE_CLOSED:
+		_schedule_reconnect()
+	elif (
+		_socket.get_ready_state() == WebSocketPeer.STATE_CONNECTING
+		and _now() - _connect_started > CONNECT_TIMEOUT
+	):
+		_schedule_reconnect()
+	elif _socket.get_ready_state() == WebSocketPeer.STATE_OPEN:
+		_reconnect_attempts = 0
+		while _socket.get_available_packet_count() > 0:
+			_handle_packet(_socket.get_packet().get_string_from_utf8())
+	for slot in 2:
+		_fighters[slot].set_move(_move[slot], delta)
+	_hud.set_bars(_hp[0], _hp[1], _move[0], _move[1])
+	_hud.set_blocking(_blocking[0], _blocking[1])
+	_update_watchdog(delta)
+
+
+func _update_watchdog(delta: float) -> void:
+	if _peer_left_seen:
+		_peer_left_timer -= delta
+		if _peer_left_timer <= 0.0:
+			_end_room("A player left - room ended")
 		return
+	if not _in_lobby and not _reconnecting and _now() - _last_message > WATCHDOG_TIMEOUT:
+		_schedule_reconnect()
+
+
+func _connect() -> void:
+	if _socket.get_ready_state() != WebSocketPeer.STATE_CLOSED:
+		_socket.close()
+	_socket = WebSocketPeer.new()
+	var url := "%s?room=%s&role=spec" % [Net.RELAY_URL, Net.spectate_room]
+	_connect_started = _now()
+	if _socket.connect_to_url(url) != OK:
+		_schedule_reconnect()
+		return
+	_reconnecting = false
+
+
+func _schedule_reconnect() -> void:
+	_last_message = _now()
 	if _reconnect_attempts >= RECONNECT_LIMIT:
-		_hud.set_status("Room %s ended" % Net.spectate_room)
+		_end_room("Room %s ended" % Net.spectate_room)
 		return
 	_reconnect_attempts += 1
 	_reconnecting = true
@@ -115,11 +144,20 @@ func _handle_closed(delta: float) -> void:
 	_hud.set_status("Reconnecting to room %s..." % Net.spectate_room)
 
 
+func _end_room(reason: String) -> void:
+	if _ended:
+		return
+	_ended = true
+	_ended_timer = END_RETURN_DELAY
+	_hud.set_status(reason)
+
+
 func _handle_packet(text: String) -> void:
 	var message = JSON.parse_string(text)
 	if typeof(message) != TYPE_DICTIONARY:
 		return
 	_last_message = _now()
+	_peer_left_seen = false
 	var slot := int(message.get("slot", -1))
 	match str(message.get("t", "")):
 		Protocol.PROFILE:
@@ -158,9 +196,9 @@ func _handle_packet(text: String) -> void:
 		Protocol.JOINED:
 			_hud.set_status("Watching room %s" % Net.spectate_room)
 		Protocol.PEER_LEFT:
-			_hud.set_status("A player left - room ended")
-			if Net.spectate_auto:
-				_leave_to("res://scenes/spectate_screen.tscn")
+			_peer_left_seen = true
+			_peer_left_timer = ROOM_END_GRACE
+			_hud.set_status("A player left - waiting for reconnect...")
 		Protocol.PEER_JOINED:
 			_hud.set_status("Watching room %s" % Net.spectate_room)
 
@@ -204,6 +242,9 @@ func _round_won(slot: int) -> void:
 
 
 func _apply_state(message: Dictionary) -> void:
+	if int(message.get("present", 2)) < 2:
+		_end_room("Room %s ended" % Net.spectate_room)
+		return
 	var hp = message.get("hp", {})
 	var rounds = message.get("rounds", {})
 	var ready = message.get("ready", {})

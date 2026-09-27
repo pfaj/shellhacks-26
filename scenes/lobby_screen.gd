@@ -261,7 +261,7 @@ func _join_url() -> String:
 func _make_qr_texture(url: String) -> Texture2D:
 	if not OS.has_feature("web") or url.is_empty():
 		return null
-	var data_url := str(JavaScriptBridge.eval("sockemQRPng(%s, 512)" % JSON.stringify(url)))
+	var data_url := str(JavaScriptBridge.eval("clankerQRPng(%s, 512)" % JSON.stringify(url)))
 	var prefix := "data:image/png;base64,"
 	if not data_url.begins_with(prefix):
 		return null
