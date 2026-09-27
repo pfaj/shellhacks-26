@@ -2,14 +2,13 @@
 set -e
 
 GODOT_BIN="${GODOT_BIN:-godot}"
-VERCEL_PROJECT="${VERCEL_PROJECT:-web}"
-VERCEL_SCOPE="${VERCEL_SCOPE:-pfajs-projects}"
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD_DIR="$PROJECT_DIR/build/web"
-UPLOAD_DIR="$(mktemp -d "${TMPDIR:-/tmp}/sockem-deploy.XXXXXX")"
+PAGES_DIR="$(mktemp -d "${TMPDIR:-/tmp}/sockem-pages.XXXXXX")"
+REMOTE="$(git -C "$PROJECT_DIR" remote get-url origin)"
 
 cleanup() {
-	rm -rf "$UPLOAD_DIR"
+	rm -rf "$PAGES_DIR"
 }
 trap cleanup EXIT
 
@@ -22,9 +21,14 @@ fi
 mkdir -p "$BUILD_DIR"
 "$GODOT_BIN" --headless --path "$PROJECT_DIR" --export-release "Web" "$BUILD_DIR/index.html"
 
-cp -R "$BUILD_DIR/." "$UPLOAD_DIR/"
-rm -rf "$UPLOAD_DIR/.vercel" "$UPLOAD_DIR/.env.local" "$UPLOAD_DIR/.gitignore"
-find "$UPLOAD_DIR" -name '*.import' -delete
+cp -R "$BUILD_DIR/." "$PAGES_DIR/"
+rm -rf "$PAGES_DIR/.vercel" "$PAGES_DIR/.env.local" "$PAGES_DIR/.gitignore"
+find "$PAGES_DIR" -name '*.import' -delete
+touch "$PAGES_DIR/.nojekyll"
 
-cd "$UPLOAD_DIR"
-npx --yes vercel deploy --prod --yes . --project "$VERCEL_PROJECT" --scope "$VERCEL_SCOPE"
+cd "$PAGES_DIR"
+git init -q -b gh-pages
+git add -A
+git -c user.name="sockem-deploy" -c user.email="deploy@sockem.local" commit -qm "deploy $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+git push -f "$REMOTE" gh-pages
+echo "Published gh-pages branch (Pages: https://ajimenez.me/shellhacks-26/)"
